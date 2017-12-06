@@ -13,7 +13,7 @@
 				</h4>
 			</div>
 			<div class="modal-body">
-				<form class="form-horizontal form">
+				<form class="form-horizontal form" v-show='showLoginForm'>
 				  <div class="form-group">
 				    <label for="inputEmail" class="col-sm-4 control-label">邮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;箱：</label>
 				    <div class="col-sm-5">
@@ -29,7 +29,7 @@
 				    </div>
 				  </div>
 				  <div class="form-group extra-op">
-				    	<span>忘记密码</span> &nbsp;|&nbsp;
+				    	<span @click="forgetPwd">忘记密码</span> &nbsp;|&nbsp;
 				    	<span @click="switch1(1)">注册</span>
 				  </div>
 				  <div class="form-group btn-box">
@@ -41,6 +41,14 @@
 				    </div>
 				  </div>
 				  </form>
+				<div class="forget-box" v-show="!showLoginForm">
+					<p>请输入注册邮箱：</p>
+					<input type='email' name="email" class="form-control" v-model='email'/>
+					<p class="reset-success" v-show="resetSuccess"><span>重置密码成功！</span>1s后自动回到登录界面</p>
+					<div class="btn-box">
+						<button class="btn btn-submit" @click="sendEamil">发送邮件</button>
+					</div>
+				</div>
 			</div>
 		</div><!-- /.modal-content -->
 		</div><!-- /.modal -->
@@ -123,7 +131,9 @@ export default {
 	  		email: false,
 	  		pwd: false,
 	  		rpwd: false
-	  	}
+	  	},
+	  	showLoginForm: true,    //是否显示登录表单
+	  	resetSuccess: false
 	  }
 	},
 	mounted: function () {
@@ -214,23 +224,19 @@ export default {
 		        email: data.email,
 		        pwd: data.pwd
 		    },{}).then((response) => {
-		    	console.log(response)
-				if (response.body.userId) {
 					this.childMsg.isExit = false;
 		            this.childMsg.username = response.body.userName;
 		            this.childMsg.userimg = response.body.imgSrc;
-		            this.username = response.body.userName;
-		            this.userid = response.body.userId;
+		            // this.username = response.body.userName;
+		            // this.userid = response.body.userId;
 
-		            this.$store.commit('setUser', data);
-		            this.$store.commit('setUserImg', this.childMsg.userimg);
+		            this.$store.commit('setUser', response.body);
+                	this.$store.commit('setUserImg', response.body.imgSrc);
 		            this.$store.commit('setToken', response.body.token);
 					$('.close').click();
 					this.myFun.showMsg('登录成功');
 				    this.$router.go(0);
-		        } else {
-		            console.log(response.body);
-		        }
+		        
 
 		    })
 		    .catch(function(response) {
@@ -246,6 +252,25 @@ export default {
 				$('.close').click();
 				$('#login').click();
 			}
+		},
+		//忘记密码
+		forgetPwd() {
+			this.showLoginForm = false;
+		},
+		sendEamil() {
+			this.$http.post('/api/user/sendEamil', {
+		        email: this.email,
+		    },{}).then((response) => {
+				console.log(response.body)
+				this.resetSuccess = true;
+				var _this = this;
+				setTimeout(function(){
+					_this.showLoginForm = true;
+				}, 1000)
+		    })
+		    .catch(function(response) {
+		        console.log("异常");
+		    })
 		}
 	}
 }
@@ -265,6 +290,21 @@ export default {
 }
 
 .modal-body {
+	min-height: 250px;
 }
 
+.forget-box {
+	margin-top: 30px;
+	p {
+		text-align: left;
+	}
+	.reset-success {
+		font-size: 0.8rem;
+		margin-top: 15px;
+		text-align: right;
+		span {
+			color: rgba(240, 27, 45, 0.9);
+		}
+	}
+}
 </style>

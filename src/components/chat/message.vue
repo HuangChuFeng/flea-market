@@ -1,12 +1,19 @@
 <template>
 	<div class="mywrap">
 		<!-- 根据点击联系人来切换聊天窗口 -->
-		<ChatDiaLog :toChatMsg="toChatMsg"></ChatDiaLog>
+		<ChatDiaLog :toChatMsg="toChatMsg" ref='update' @get-new-msg="getNewMsg"></ChatDiaLog>
 		<!-- 联系人列表 -->
 		<div class="connect-list">
-			<ul>
-				<li v-for="item in seller" @click='startChat(item.contactsName)'>{{item.contactsName}}</li>
+			<p>联系人<i class="icon contacts"></i></p>
+			<ul v-if="seller.length != 0">
+				<li v-for="(item, index) in seller" @click='selectContacts(item.contactsName, index)'
+				:class="{'current': currentIndex == index }">{{item.contactsName}}
+				<span :class="{'new-msg': newMsgsender.length != 0 &&newMsgsender.indexOf(item.contactsName) >= 0}"></span>
+				<span v-if = "unRead[item.contactsName]" class='unread-msg'>{{unRead[item.contactsName]}}</span>
+				<!-- <span class="unread-msg" v-if = "unRead[item.contactsName] && currentIndex != index">{{unRead[item.contactsName]}}</span> -->
+				</li>
 			</ul>
+			<p v-else>您还没有联系人</p>
 		</div>
 	</div>
     
@@ -23,112 +30,195 @@ export default {
 	data () {
     	return {
     		seller: [],       //联系人列表
-    		userName: this.$store.state.currentdata.UserName,
+    		userName: this.$store.state.UserName,
     		sellerName: null,
-    		toChatMsg: {
+    		toChatMsg: {   //当前聊天对象信息
     			sellerInfo: {
     				name: null,
     				id: null
     			}
-    		}
+    		},
+    		currentIndex: 0,
+    		newMsgsender: [],   //新消息发送者
+    		unRead: []
     	}
     },
+    watch: {
+	    'toChatMsg.sellerInfo': {
+            handler: (val, oldVal) => {
+            	// console.log('parent watch');
+
+            },
+            deep:true
+        }
+    },
     mounted: function() {
-    	var _this = this;
-    	$.ajax({
-            url: "/api/chat/getContacts",
-            type: "get",
-            async: false,
-            beforeSend: function(xhr) {
-              	_this.myFun.setToken(xhr);
-            },
-            success: function(data){
-              	_this.seller = data;
-              	
-            },
-            error: function(error) {
-            	console.log("获取资源失败");
-              	_this.myFun.tokenExpired(error)
-            }
-        });
-		if(this.$route.query !== {}) {
-			// this.toChatMsg.sellerInfo.name = );
-			// this.toChatMsg.sellerInfo.id = this.$route.query.sellerId;
-			var sellerName = decodeURI(decodeURI(this.$route.query.sellerName));
-			var sellerArr = this.seller.map(function(item) {
-				return item.contactsName;
-			})
-			// 当前买家已经是用户的历史联系人
-			if(sellerArr.indexOf(sellerName) < 0) {
-				this.seller.push({
-					id: this.toChatMsg.sellerInfo.id, 
-					contactsName: sellerName
-				})
-			}
-		}
-    	
+    	// console.log(this.$store.state.unRead);
+    	this.getContacts();
     },
     methods: {
-    	startChat(contactsName) {
+    	getContacts() {
+    		var _this = this;
+	    	$.ajax({
+	            url: "/api/chat/getContacts",
+	            type: "get",
+	            async: false,
+	            beforeSend: function(xhr) {
+	              	_this.myFun.setToken(xhr);
+	            },
+	            success: function(data){
+	              	_this.seller = data;
+	            },
+	            error: function(error) {
+	            	console.log("获取资源失败");
+	              	_this.myFun.tokenExpired(error)
+	            }
+	        });
+	        var queryName = this.$route.query.sellerName;
+	        //有路由参数
+	 		if(queryName != undefined) {  
+				var sellerName = decodeURI(decodeURI(queryName));
+				var sellerArr = this.seller.map(function(item) {
+					return item.contactsName;
+				})
+				this.toChatMsg.sellerInfo.name = sellerName;
+				// 不是历史联系人，向联系人列表开头添加当前卖家
+				if(sellerArr.indexOf(sellerName) < 0) {
+					this.seller.unshift({
+						id: this.toChatMsg.sellerInfo.id, 
+						contactsName: sellerName
+					})
+				} else {   // 当前买家已经是用户的历史联系人，置为选中状态
+					this.toChatMsg.sellerInfo.name = this.seller[sellerArr.indexOf(sellerName)].contactsName;
+					this.selectContacts(this.toChatMsg.sellerInfo.name, sellerArr.indexOf(sellerName))
+				}
+			} else {  //没有路由参数
+		        if(this.seller.length != 0) {   //历史联系人不为空
+					this.toChatMsg.sellerInfo.name = this.seller[0].contactsName;
+					// this.selectContacts(this.seller[0].contactsName)
+					this.selectContacts(this.toChatMsg.sellerInfo.name, 0)
+		        }
+			}
+			//传来未读消息
+			if(this.$route.query.unread) {
+				var unReadObj = this.$store.state.unRead;
+				// console.log(this.seller)
+				for(var key in unReadObj) {
+					if(this.seller[0].contactsName != key){  //如果不是第一个则加标志
+						this.unRead[key] = unReadObj[key];
+					} else {  //是第一个自动发请求置消息为已读
+						console.log('key:'+key)
+						// console.log(unReadObj[key]);
+						this.setRead(key, unReadObj[key])
+					}
+				}
+			}
+    	},
+    	selectContacts(contactsName, index) {
+    		this.newMsgsender.length = 0;
+    		var oldName = this.toChatMsg.sellerInfo.name;
+    		//调用子组件方法
+    		if(this.unRead[contactsName] && parseInt($('#unreadCount').text()) > 0) {
+    			//把未读消息置为已读
+    			this.setRead(contactsName, this.unRead[contactsName]);
+    		}
+    		this.currentIndex = index;
+            // this.$refs.update.switchContacts(contactsName, oldName);
+            this.$refs.update.getChatRecord(contactsName, oldName);
     		this.toChatMsg.sellerInfo.name = contactsName;
-    		console.log(this.toChatMsg.sellerInfo.name)
-    	} 
+    	},
+    	getNewMsg(fromName) {
+    		console.log('来自子组件：'+fromName+'发来新消息')
+    		this.newMsgsender.push(fromName);
+    	},
+    	//把未读消息置为已读
+    	setRead(contactsName, subtractor) {
+    		var _this = this;
+	    	$.ajax({
+	            url: "/api/chat/setRead",
+	            type: "post",
+	            data: {fromName: contactsName},
+	            async: false,
+	            dataType: 'json',
+	            beforeSend: function(xhr) {
+	              	_this.myFun.setToken(xhr);
+	            },
+	            success: function(data){
+	            	var sum = parseInt($('#unreadCount').text());
+	            	subtractor = parseInt(subtractor);
+	            	var surplus = sum - subtractor;
+	              	$('#unreadCount').text(surplus);
+    				delete _this.unRead[contactsName];
+	            },
+	            error: function(error) {
+	            	console.log("修改为已读失败");
+	              	_this.myFun.tokenExpired(error)
+	            }
+	        });
+    	}
+    	
     }
 }
 </script>
 
 <style lang='less'>
-.wrap {
-	// width: 100%;
-	height: 100%;
-	overflow: auto;
+.mywrap {
+	padding-top: 0;
+	margin: 20px 10%;
+	min-width: 37.5rem;
+	overflow: hidden;
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.4);
+	-webkit-box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+    -moz-box-shadow: 0 0 8px rgba(0, 0, 0, 0.5); 
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
 }
-.dialog {
-	border: 1px solid;
-	width: 70%;
-	height: 580px;
-	float: left;
-	padding: 5px;
-	.message-box {
-		height: 70%;
-		width: 100%;
-		border: 1px solid;
-		.seller-msg-box {
-			float: left;
-			width: 50%;
-			height: 100%;
-			border: 1px solid;
-		}
-		.user-msg-box {
-			float: right;
-			width: 50%;
-			height: 100%;
-			border: 1px solid;
-		}
-	}
 
-	.send {
-		height: 30%;
-		width: 100%;
-		border: 1px solid;
-		.input-message {
-			width: 80%;
-			// height: 100%;
-			float: left;
-		}
-		button {
-			float: right;
+.connect-list {
+	width: 30%;
+	height: 37.5rem;
+	float: right;
+	border-left: 1px solid #fff;
+	p {
+		line-height: 41px;
+		color: #fff;
+		background: rgba(8, 7, 177, .9);
+		margin: 0;
+		.contacts {
+			width: 1.125rem;
+			height: 1.125rem;
+			position: relative;
+			background-size: 1.125rem 1.125rem;
+		    top: 13.5px;
+    		left: 5px;	
 		}
 	}
-}
-.connect-list {
-	border: 1px solid;
-	width: 30%;
-	height: 580px;
-	float: right;
-	li {
-		&:hover {
-			cursor: pointer;
+	ul {
+		padding: 0;
+		li {
+			line-height: 3.125rem;
+			text-align: left;
+			padding-left: 40%;
+			&:hover {
+				cursor: pointer;
+			}
+		}
+		.current {
+			background: rgba(0, 0, 0, 0.7);
+			color: #fff;
+		}
+		.new-msg {
+			width: 5px;
+			height: 5px;
+			position: relative;
+			bottom: 2px;
+			border-radius: 50%;
+			display: inline-block;
+			background-color: rgba(241, 49, 65, 0.8);
+			left: 20px;
+		}
+		.unread-msg {
+			color: #da6155;
 		}
 	}
 }

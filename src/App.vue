@@ -9,6 +9,7 @@
       </div>
       <div class="back-top icon" id="backtopbtn" @click="backTop"></div>
       <div class="content">
+      <div class="small-menu"></div>
         <router-view/>
         <!-- <footer>FROM 黄初凤</footer> -->
       </div>
@@ -60,36 +61,74 @@ export default {
 
 <style lang='less'>
 body {
-  // background-repeat: no-repeat;
-  // background: -webkit-gradient(linear, left bottom, right top, from(#ebbba7), to(#cfc7f8));
+  background-image: url(./assets/img/background.jpg);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
   overflow-x: hidden;
+  // opacity:0.6;
+  //   filter:"alpha(opacity=60)";
+  //   -ms-filter:"alpha(opacity=60)"; /* 旧版IE */
 }
+html{font-size: 16px;}
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  font-size: 1rem;
 }
 .content {
-  padding: 20px;
-  margin-left: 300px;
+  background: rgba(22, 22, 22, 0.7);
+  padding: 1.25rem;
+  color: #000;
+  margin-left: 18.75rem;
   min-height: 100%;
   overflow: hidden;
   a:hover {
     color: rgba(240, 27, 45, 0.9);
   }
+  .small-menu {
+    position: absolute;
+    width: 3rem;
+    height: 3rem;
+    background: blue;
+    top: 3px;
+    left: 3px;
+    display: none;
+  }
 }
 footer {
   position: relative;
-  margin-top: 100px;
-  bottom: -20px;
-  left: -20px;
+  margin-top: 6.25rem;
+  bottom: -1.25rem;
+  left: -1.25rem;
   width: 110%;
-  height: 40px;
-  line-height: 40px;
+  height: 2.5rem;
+  line-height: 2.5rem;
   color: #fff;
   background-color: #e3574b;
 }
-
+@media screen and (max-width: 960px) {
+    .nav {
+        display: none;
+    }
+    .content {
+      margin-left: 0;
+      padding-left: 3rem;
+      .small-menu {
+        display: block;
+      }
+    }
+}
+@media screen and (max-width:600px){
+  html {
+    font-size: 12px;
+  }
+  .mywrap {
+    height: 100%;
+  }
+}  
 </style>

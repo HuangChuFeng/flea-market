@@ -1,4 +1,4 @@
-import router from '../router'
+﻿import router from '../router'
 import store from '../vuex/store'
 var myFun = {
 	showMsg: function(text) {
@@ -9,7 +9,7 @@ var myFun = {
 		},500)
 	},
 	setToken: function(xhr) {
-		var token = store.state.currentdata.Token;
+		var token = store.state.Token;
 		if(token) {
 			xhr.setRequestHeader("token", token);
 		}

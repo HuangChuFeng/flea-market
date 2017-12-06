@@ -1,12 +1,18 @@
 <template>
 	<div>
 		<header>
-		   <span>{{$store.state.currentdata.UserName}}</span><i class="edit icon" @click="slideInfoBox"></i>
+		   <span>{{this.$store.state.UserName}}</span><i class="edit icon" @click="slideInfoBox"></i>
 		</header>
 		<div class="info-box">
-			<div class="op-box">
+			<div class="op-box"> 
 				<div class="operate-box">
-			      	<img :src="src"/>
+					<div class="chang-pwd"></div>
+					<button class="" @click="changeAccount">填写支付帐号</button>
+				</div>
+				<div class="operate-box">
+			      	<div class="img">
+			      		<img :src="src"/>
+			      	</div>
 			      	<label><input type="file" id="portrait" name="portrait" @change="changePortrait">更换头像</label>
 			    </div> 
 				<div class="operate-box">
@@ -14,14 +20,33 @@
 					<button class="" @click="changePwd">修改密码</button>
 				</div>
 			</div>
+			<div class="op-content" v-if="isChangeAccount">
+			<form class="form-horizontal form">
+				  <div class="form-group">
+				    <label for="inputRpwd" class="col-sm-4 control-label">支付帐号：</label>
+				    <div class="col-sm-4">
+				      <input type="text" class="form-control" name="inputAccount"
+				      v-model.trim='inputAccount' placeholder='支付帐号'>
+				    </div>
+				  </div>
+				  <div class="form-group btn-box">
+				    <div class="col-sm-offset-2 col-sm-8">
+				      <button type="button" class="btn btn-cancel" @click='cancel'>取消
+					  </button>
+					  <span></span>
+					  <button type="button" class="btn btn-submit" @click="insertAccount">提交</button>
+				    </div>
+				  </div>
+				  </form>
+			</div>
 			<div class="op-content" v-if="isChangeImg">
 				<img :src="newSrc" ><br/>
 					<div class="btn-box">
-					<button type="button" class="btn btn-cancel" @click='cancel'>取消
+						<button type="button" class="btn btn-cancel" @click='cancel'>取消
 					  </button>
 					  <span></span>
 					  <button type="button" class="btn btn-submit" @click="modifyImg">提交</button>
-					  </div>
+					</div>
 			</div>
 			<div class="op-content" v-if="isChangePwd">
 				<form class="form-horizontal form">
@@ -60,10 +85,12 @@ export default {
   data () {
     return {
     	newSrc: '',   //新头像图片src
-    	src: this.$store.state.currentdata.UserImg,      //上传成功后更新头像src
+    	src: this.$store.state.UserImg,      //上传成功后更新头像src
     	newImg: '',   //上传的图片
     	isChangeImg: false,
     	isChangePwd: false,
+    	isChangeAccount: false,
+    	inputAccount: null,
     	pwd: '',
     	rpwd: '',
     	option: {
@@ -123,7 +150,7 @@ export default {
 	    },
 	    error: function(err) {
 	    	console.log('获取资源失败')
-            _this.myFun.tokenExpired(error)
+            _this.myFun.tokenExpired(err)
 	    }
 	})
 			            
@@ -163,7 +190,7 @@ export default {
   		} else {
   			this.$http.post('/api/user/modifyInfo', {
   				newPwd: this.rpwd,
-  				token: this.$store.state.currentdata.Token
+  				token: this.$store.state.Token
 		    },{}).then((response) => {
 		    	if(response.code = 200){
 			    	this.myFun.showMsg('密码修改成功')
@@ -179,7 +206,7 @@ export default {
   		var formdata = new FormData();  		
 		formdata.enctype = "multipart/form-data";
 		formdata.append('newImg', this.newImg);
-		formdata.append('token', this.$store.state.currentdata.Token)
+		formdata.append('token', this.$store.state.Token)
 		var _this = this;
 		$.ajax({
             url: "/api/user/modifyInfo",
@@ -205,9 +232,26 @@ export default {
             }
         })
   	},
+  	changeAccount () {
+  		this.isChangeAccount = true;
+  	},
+  	insertAccount() {
+  		console.log(this.inputAccount)
+  		this.$http.post('/api/user/insertAccount', {
+				account: this.inputAccount
+		    },{}).then((response) => {
+		    	this.inputAccount = null;
+				this.myFun.showMsg('填写支付帐号成功')
+				this.isChangeAccount = false;
+		    })
+		    .catch(function(response) {
+		        console.log("异常");
+		    })
+  	},
   	cancel() {
   		this.isChangePwd = false;
   		this.isChangeImg = false;
+  		this.isChangeAccount = false;
   	}
   }
 }
@@ -239,6 +283,10 @@ header {
 	   height: 120px;
 	   border: 1px solid #ccc;
 	   margin: 15px;
+	   .img {
+	   	width: 100%;
+	   	height: 120px;
+	   }
 	   img {
 	     max-width: 100%;
 	     max-height: 100%;

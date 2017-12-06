@@ -14,7 +14,7 @@
 			<div class="item-right">
 				<h3>{{item.title}}</h3>
 				<p class="price">￥ {{item.price}}</p>
-				<p>{{item.level}} 成新</p>
+				<p>{{item.level}} 成新<span class="hits">被浏览了&nbsp;&nbsp;{{item.hits}}&nbsp;&nbsp;次</span></p>
 				<p>来自 
 					<span v-if="item.sellerId == userId">{{item.userName}}</span>
 					<router-link :to="{path:'/message',query: {sellerId: item.sellerId, sellerName: encodeURI(encodeURI(item.userName))}}" v-else>
@@ -23,10 +23,12 @@
 				</p>
 				<p>商家描述： {{item.description}}</p>
 				<div class="btn-box">
-					<button type="button" class="btn" @click="$router.go(-1)">返 回</button>
+					<button type="button" class="btn btn-cancel" @click="$router.go(-1)">返 回</button>
 					<span></span>
 					<button type="button" class="btn btn-submit" v-if="isCollect" @click='collect'>取消收藏</button>
 					<button type="button" class="btn btn-submit" v-else @click='collect'>收 藏</button>
+					<span></span>
+					<button type="button" class="btn btn-submit" @click='buy'>入 手</button>
 				</div>
 			</div>
 		</div>
@@ -41,7 +43,7 @@ export default {
 	    	bigImg: '',   //大图预览
 	    	imgActive: 0,
 	    	isCollect: this.$route.query.isCollect,
-	    	userId: this.$store.state.currentdata.UserId
+	    	userId: this.$store.state.UserId
     	}
 	},
 	created: function() {
@@ -79,8 +81,8 @@ export default {
 		        });
 		},
 		collect() {
-		  var _this = this, userId = this.$store.state.currentdata.UserId, type;
-		  if(!userId){
+		  var _this = this, token = this.$store.state.Token, type;
+		  if(!token){
 		  	alert('请先登录');
 		  } else {
 		      if(this.isCollect) {    //取消收藏
@@ -111,6 +113,21 @@ export default {
 		            }
 		      });
 			}
+		},
+		//购买
+		buy() {
+			this.$http.post('/api/item/buy', {
+		        itemId: this.itemId,
+		        sellerId: this.item.sellerId
+		    },{}).then((response) => {
+				console.log(response.body);
+				if(response.body.msg == 200) {
+					this.$router.push({ path: '/items/buyin' });
+				}
+		    })
+		    .catch(function(response) {
+		        console.log("异常");
+		    })
 		}
 	}
 }
@@ -121,11 +138,11 @@ export default {
 	display: flex;
 }
 .item-left {
-	min-width: 450px;
+	min-width: 28.125rem;
 	.big-img {
-		height: 400px;
+		height: 25rem;
 		border: 1px solid #eee;
-		padding: 5px;
+		padding: 0.3125rem;
 		img {
 			max-width: 100%;
 			max-height: 100%;
@@ -141,7 +158,7 @@ export default {
 		div {
 			width: 100px;
 			height: 100px;
-			margin: 5px;
+			margin: 0.3125rem;
 			background-color: #fff;
 			img {
 				max-width: 100%;
@@ -158,14 +175,18 @@ export default {
 	}
 }
 .item-right {
-	margin-left: 70px;
+	color: #eee;
+	margin-left: 4.375rem;
 	text-align: left;
-	min-width: 200px;
+	min-width: 12.5rem;
 	h3 {
-		margin-bottom: 30px;
+		margin-bottom: 1.875rem;
 	}
 	.price {
 		color: red;
+	}
+	.hits {
+		float: right;
 	}
 }
 </style>

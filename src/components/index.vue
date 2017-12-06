@@ -1,5 +1,5 @@
 <template>
-  <div class="mywrap">
+  <div class="">
     <div class="items">
 	     <div class="items-box">
         <div class="item-list box-shadow" v-for="item in items">
@@ -69,7 +69,7 @@ export default {
         });
   	},
     collect(id) {
-      if(!this.$store.state.currentdata.Token) {
+      if(!this.$store.state.Token) {
         alert('请先登录')
       } else {
         var _this = this, index = this.collectArr.indexOf(id+''), type;
@@ -100,7 +100,7 @@ export default {
               }
         });
       }
-    }
+    },
   }
 }
 </script>

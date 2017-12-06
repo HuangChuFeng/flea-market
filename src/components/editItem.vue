@@ -44,7 +44,7 @@
 				  	<div class="img box-shadow" v-for="(url,index) in item.imgPath">
 				  		<span @click = 'delImage(index)'>&times;</span>
 				  		<div class="img-wrap">
-				  			<img :src="url">
+				  			<img :src="url" class = "viewImg">
 				  		</div>
 				  	</div>
 				  </div>
@@ -68,7 +68,7 @@ export default {
     	childOpType: this.opType,
     	moduleTitle: ['在售宝贝', '我的买入', '我的卖出'],
     	moduleIndex: '',           // 点击的筛选条件下标
-    	imgs: [],                  // 图片路径
+    	imgs: [],                  // 发送到服务器的图片
 	    options: [                 //商品类型
 	      { text: '书籍教材', value: '书籍教材' },
 	      { text: '生活用品', value: '生活用品' },
@@ -76,20 +76,23 @@ export default {
 	      { text: '体育用品', value: '体育用品' }
 	    ],
     	item: {
-    		title: '',		       // 标题
+    		title: null,		       // 标题
     		type: '书籍教材',      // 类型
-    		imgPath: [],
+    		imgPath: [],           //显示的图片数组
     		price: 0,		       // 价格
     		description: '',       // 描述
     		level: 0,             // 新旧程度
 
-    	}
+    	},
+    	oldImg: [],             //修改之前的商品图片路径
+    	oldTitle: null          //修改之前的商品名称
     }
   },
   watch: {
 	    opType(val) {
 	    	this.childOpType = val;
 	    	console.log('子组件：'+this.childOpType);
+	    	//获取单个商品信息
 	    	if(val != 'add') {
 	    		var _this = this;
 		  		$.ajax({
@@ -105,7 +108,10 @@ export default {
 					  		src[j] = src[j].substring(1);
 					  	}
 					  	data[0].imgPath = src;
+					  	console.log(src)
 						_this.item = data[0];
+						_this.oldImg = src.slice();
+						_this.oldTitle = data[0].title;
 		            },
 		            error: function(error) {
                 		_this.myFun.tokenExpired(error)
@@ -135,14 +141,17 @@ export default {
   	},
   	addImg(e) {
   		var files = e.target.files || e.dataTransfer.files;
-  		// console.log(this.$refs.imgPath.files[0])
+  		console.log('增加的：')
   		this.imgs.push(files[0])
-
+  		console.log(this.oldImg)
 	  	if (!files.length) return; 
         this.createImage(files);
   	},
   	delImage:function(index){
         this.item.imgPath.shift(index);
+        if(this.oldImg[index]) {
+        	this.oldImg.shift(index)
+        }
         this.imgs.shift(index)
     },
   	createImage(file) {
@@ -160,24 +169,27 @@ export default {
             };                 
         }
     },
-    uploadImg() {
-  		var _this = this;
-    },
   	publish() {
 		var formdata = new FormData();  		
 		formdata.enctype = "multipart/form-data";
 		if(this.childOpType != 'add'){   //修改
 			console.log('类型：'+this.childOpType)
 			formdata.append('itemId', this.childOpType);
+			formdata.append('oldTitle', this.oldTitle);
+			if(this.oldImg.length != 0 ) { //原来的图片还在
+				formdata.append('oldImg', this.oldImg)
+			}
 		}
 		if(this.imgs.length != 0){
 			for (var i = 0; i < this.imgs.length; i++) {  
 				formdata.append('img'+i, this.imgs[i]);
 			}
-		}else {
-			this.myFun.showMsg('请添加图片')
+		} else {
+			if(this.oldImg.length == 0){
+				this.myFun.showMsg('请添加图片')
+			}
 		}
-		formdata.append('token', this.$store.state.currentdata.Token);
+		formdata.append('token', this.$store.state.Token);
   		for (var key in this.item) {  
 		    if (key) {
 		     	formdata.append(key, this.item[key])
@@ -227,18 +239,18 @@ export default {
 	right: 30px;
 	form {
 		margin-left: 30px;
+		label {
+			color: #eee;
+		}
+		font-size: 0.8rem;
 	}
 }
-.sell-items {
-}	
 .img-box{
 	width: 90%;
-	margin-left: 75px;
 	text-align: left;
 	min-height: 200px;
 	display: flex;
 	overflow: hidden;
-	// border: 1px solid;
 	justify-content: space-around;
 	flex-wrap: wrap;
 	.img {
@@ -279,15 +291,12 @@ export default {
 	.add-img{
 		width: 160px;
 		height: 160px;
-		border: 1px dashed;
+		border: 1px dashed #ccc;
 		label {
 			width: 160px;
 			height: 160px;
 			margin: 0;
 			background-image: url(../assets/img/add-img.png);
-			opacity:0.3;
-			filter:"alpha(opacity=30)";
-		 	-ms-filter:"alpha(opacity=30)"; /* 旧版IE */
 			background-repeat: no-repeat;
 			background-position: center center;
 			&:hover {
@@ -299,11 +308,12 @@ export default {
 	    }
 	}
 }
+//当屏幕宽度大于1200px
 @media screen and (min-width: 1200px) {
 	.img-box{
 		width: 410px;
 		height: 350px;
-		margin-left: -40px;
+		margin-left: 40px;
 		position: absolute;
 		bottom: 125px;
 		left: 605px;
@@ -314,5 +324,11 @@ export default {
 	form {
 		margin-left: 0px;
 	}
+}
+@media screen and (max-width: 960px) {
+	.edit-item form {
+    margin-left: -280px;
+}
+	
 }
 </style>

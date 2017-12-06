@@ -16,7 +16,7 @@
 						<div class="img-cover">
 							<div class="operate">
 								<i class="edit icon" @click='modify(item.id)'></i>
-								<i class="del icon" @click="del(item.id)"></i>
+								<i class="del icon" @click="del(item.id, item.title)"></i>
 							</div>
 						</div>
 						<p class="title">
@@ -42,7 +42,7 @@ export default {
     	opType: ''         //传入addItem子组件的信息，为数字的时候为修改，数字表示商品的id，add增加
     }
   },
-  created: function() {
+  mounted: function() {
   	this.getItems('');
   },
   watch: {
@@ -91,12 +91,13 @@ export default {
   		$('.items').animate({"left":"1200px"});
   		$('.edit-item').animate({"left": "340px"});
   	},
-  	del(id) {
+  	del(id, title) {
   		var _this = this;
+      console.log(title)
   		$.ajax({
             url: "/api/item/editItem",
             type: "get",
-            data: {itemId: id, type: 0},
+            data: {itemId: id, itemTitle: title, type: 0},
             beforeSend: function(xhr) {
               _this.myFun.setToken(xhr);
             },

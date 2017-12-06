@@ -1,5 +1,5 @@
 <template>
-	<div class="mywrap">
+	<div class="">
 		<div class="items-header">
 			<ul>
 				<li><router-link to="/items/published">已发布</router-link></li>
@@ -41,6 +41,7 @@ export default {
 	ul {
 		margin-left: -20px;
 		overflow: hidden;
+		color: #fff;
 		li {
 			float: left;
 			padding: 5px 30px;
@@ -48,13 +49,71 @@ export default {
 			transition: all ease .2s;
 			&:hover {
 				cursor: pointer;
-				border-bottom: 2px solid @dark-red;
+				border-bottom: 2px solid rgba(8, 7, 177, 0.9);
 			}
-			a:focus {
-				color: @dark-red;
+			a:hover, a:focus {
+				color: inherit;
 			}
 		}
 	}
 }
 
+
+.order {
+	display: -webkit-box;
+    display: flex;
+    display: -ms-flex;
+    display: -webkit-flex;
+    flex-wrap: wrap;
+    justify-content: left;
+	.order-item {
+		width: 25rem;
+		height: 5rem;
+		margin: 0 0.8rem 0.8rem 2rem;
+		background: #fff;
+		.img {
+			height: 100%;
+			width: 6rem;
+			float: left;
+			img {
+				margin: 0.2rem 0.8rem 0 0.4rem;
+				max-width: 100%;
+				max-height: 90%;
+			}
+		}
+		.info-box {
+			padding: 0.2rem 0.2rem 0 1rem;
+			float: left;
+			width: 75%;
+			p {
+				margin: 0;
+				text-align: left;
+				font-size: 0.7rem;
+				button {
+					background: rgba(23, 23, 132, 0.9);
+					color: #eee;
+					position: relative;
+					float: right;
+					padding: 1px 0.8rem;
+					border-radius: 0.8rem;
+					outline: none;
+				}
+			}
+			.title {
+				margin-top: 0.7rem;
+				margin-bottom: 0.2rem;
+				font-size: 0.9rem;
+			}
+			.price {
+				position: relative;
+				float: right;
+				// right: 1rem;
+				color: red;
+			}
+			.time {
+				font-size: 0.7rem;
+			}
+		}
+	}
+}
 </style>
