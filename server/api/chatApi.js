@@ -27,17 +27,102 @@ router.get('/getContacts', (req, res) => {
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
-			var sql = "select contactsName from contacts, user where user.id = ? and contacts.userName = user.userName";
+			var sql = "select contacts.userName, contactsName, user.userName as name from contacts, user where user.id = ?";
 			conn.query(sql, [userId], function(err, result) {
 				if (err) {
 					console.log("错误："+err);
 				}
 				if (result) {
-					res.json(result);
+					var contactsArr = []
+					for (var i = 0; i < result.length; i++) {
+						if(result[i].name == result[i].contactsName) {
+							contactsArr.push({ contactsName: result[i].userName })
+						}
+						if(result[i].name == result[i].userName) {
+							contactsArr.push({ contactsName: result[i].contactsName })
+						}
+					}
+					res.json(contactsArr);
 				}
 			});
 		}
 	}
 });
 
+//获取与某个联系人的聊天记录
+router.get('/getChatRecord', (req, res) => {
+	var params = req.query;
+	var token = req.headers['token'];
+	if(token) {
+		if(config.checkToken(token).isExpired) {  //token过期
+			res.send('Access token has expired', 400)
+		} else {
+			token = config.checkToken(token).tokenData;
+			var userId = token.iss;
+			//获取用户和当前聊天对象的聊天记录(用户发出的和收到的)
+			var sql = "select fromName, toName, content, createdTime, status from message, user, contacts where\
+			 user.id = ? and ((contacts.userName = user.userName and contacts.contactsName = ?)\
+			 or (contacts.userName = ? and contacts.contactsName = user.userName)) and\
+			  contacts.id = message.belong";
+			conn.query(sql, [userId, params.contactsName, params.contactsName], function(err, result) {
+				if (err) {
+					console.log("错误："+err);
+				}
+				if (result) {
+					res.json(result)
+				}
+			});
+		}
+	}
+});
+
+//获取未读消息, 返回来自哪个联系人的几条未读消息
+router.get('/getUnreadMsg', (req, res) => {
+	var token = req.headers['token'];
+	if(token) {
+		if(config.checkToken(token).isExpired) {  //token过期
+			res.send('Access token has expired', 400)
+		} else {
+			token = config.checkToken(token).tokenData;
+			var userId = token.iss;
+			//获取用户和当前聊天对象的聊天记录(用户发出的和收到的)
+			var sql = "select fromName, COUNT(fromName) from message, user where user.id = ? and\
+			 message.toName = user.userName and status = ? GROUP BY(fromName)";
+			conn.query(sql, [userId, 0], function(err, result) {
+				if (err) {
+					console.log("错误："+err);
+				}
+				if (result) {
+					console.log(result)
+					res.json(result)
+				}
+			});
+		}
+	}
+});
+
+//把消息置为已读
+router.post('/setRead', (req, res) => {
+	var params = req.body;
+	console.log(params)
+	var token = req.headers['token'];
+	if(token) {
+		if(config.checkToken(token).isExpired) {  //token过期
+			res.send('Access token has expired', 400)
+		} else {
+			token = config.checkToken(token).tokenData;
+			var userId = token.iss;
+			var sql = "update message set status = ? where fromName = ? and \
+			toName = (select userName from user where id = ?)";
+			conn.query(sql, [1, params.fromName, userId], function(err, result) {
+				if (err) {
+					console.log("错误："+err);
+				}
+				if (result) {
+					res.json(result)
+				}
+			});
+		}
+	}
+});
 module.exports = router;

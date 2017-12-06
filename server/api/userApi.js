@@ -1,5 +1,6 @@
 
 var express = require('express');
+const app = express();
 const fs = require('fs');
 const path = require('path');
 var multipart = require('connect-multiparty');
@@ -8,7 +9,6 @@ var multipartMiddleware = multipart({uploadDir:'../static/public/uploads/' });
 var router = express.Router();
 
 var config = require('../config');
-
 var jwt = require('jwt-simple')
 const secret = 'market'  //密钥
 
@@ -20,6 +20,7 @@ conn.connect();
 
 const bcrypt = require('bcryptjs')  //加密算法
 const salt = bcrypt.genSaltSync(10)
+var nodemailer  = require('nodemailer');	
 
 
 // 用户注册
@@ -28,7 +29,6 @@ router.post('/register', (req, res) => {
 	console.log(params);
 	// 密码加盐处理
     const encryptPwd = bcrypt.hashSync(params.pwd, salt)
-    config.myConsole(encryptPwd)
 	var sql = "insert into user(userName, pwd, email) values (?, ?, ?)"
 	conn.query(sql, [params.username, encryptPwd, params.email], function(err, result) {
 		if (err) {
@@ -91,13 +91,14 @@ router.post('/login', (req, res) => {
 				userInfo.userId = result[0].id;
 				userInfo.imgSrc = result[0].imgPath;
 				userInfo.token = token;
-				config.jsonWrite(res, userInfo);
+				res.json(userInfo);
 			}else{
-				config.jsonWrite(res, '密码错误')
+				res.json({msg:'密码错误'})
 			}
 		}
 	})
 });
+
 
 //修改个人信息
 router.post('/modifyInfo',  multipartMiddleware, async (req, res)=> {
@@ -160,35 +161,175 @@ router.get('/echartsInit', (req, res) => {
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
-			var sql = "select buyItemId, sellItemId, collect, COUNT(items.id) AS publishedCount from user, items where user.id = ? and items.sellerId = ?";
-			conn.query(sql, [userId, userId], function(err, result) {
+			var sql = "select collect, COUNT(items.id) AS publishedCount from user, items where user.id = ? and items.sellerId = user.id";
+			conn.query(sql, [userId], function(err, result) {
 				if (err) {
 					console.log("错误："+err);
 				}
 				if (result) {
-					var buyItems = result[0].buyItemId, 
-						sellItems = result[0].sellItemId, 
-						collectItems = result[0].collect,
-						publishedCount = 0,
+					var collectCount = result[0].collect,
+						publishedCount = result[0].publishedCount;
 						option = [];
-					if(buyItems != null) {
-						buyItems = buyItems.split('&').length;
+					if(collectCount != null) {
+						collectCount = collectCount.split('&').length;
 					} else {
-						buyItems = 0;
+						collectCount = 0;
 					}
-					if(sellItems != null) {
-						sellItems = sellItems.split('&').length;
-					} else {
-						sellItems = 0;
+					option.push(publishedCount, collectCount);
+					var sql = "select COUNT(orders.id) as buyCount from orders where buyerId = ?";
+					conn.query(sql, [userId], function(err, result) {
+						if (err) {
+							console.log("错误："+err);
+						}
+						if (result) {
+							buyCount = result[0].buyCount
+							option.push(buyCount);
+							var sql = "select COUNT(items.id) AS saleCount from items where items.sellerId = ? and items.status = ?";
+							conn.query(sql, [userId, 0], function(err, result) {
+								if (err) {
+									console.log("错误："+err);
+								}
+								if (result) {
+									var saleCount = result[0].saleCount;
+									option.push(saleCount);
+									res.json(option);
+								}
+							})
+						}
+					})
+				}
+			})
+		}
+	}
+});
+
+
+//通过发送邮件的方式修改密码
+// 创建一个SMTP客户端配置
+var Emailconfig = {
+        host: 'smtp.qq.com', 
+        port: 25,
+        // secure: true, // 使用SSL方式（安全方式，防止被窃取信息）
+        auth: {
+            user: '1378894282@qq.com', //刚才注册的邮箱账号
+            pass: 'vqgxawirceguhgai'  //邮箱的授权码，不是注册时的密码
+        }
+    };
+
+// 创建一个SMTP客户端对象
+var transporter = nodemailer.createTransport(Emailconfig);
+
+// 发送邮件
+router.post('/sendEamil', (req, res) => {
+	var params = req.body, resetPwd;
+	resetPwd = Math.random().toString(36).substr(2);
+	var options = {
+        from: '1378894282@qq.com',
+        to: params.email,
+        subject: '重置密码',
+        text: '一封来自Market网站的邮件',
+        html: '<p>'+params.email+'您好, 系统已为你修改了账户密码如下:<h1>'
+        +resetPwd+'</h1><p>请尽快登录并修改密码</p>',
+    }; 
+    transporter.sendMail(options, function(err, msg){
+        if(err){
+            console.log(err);
+        }
+        else {
+            const newEncryptPwd = bcrypt.hashSync(resetPwd, salt)
+			var sql = "update user set pwd = ? where email = ?";
+			conn.query(sql, [newEncryptPwd, params.email], function(err, result) {
+				if (err) {
+					console.log("错误："+err);
+					res.json('修改密码失败')
+				}
+				if (result) {
+					res.json({msg: '重置密码成功'})
+				}
+			})
+        }
+    });
+});
+
+
+//获取用户订单
+router.get('/getOrders', (req, res) => {
+	var token = req.headers['token'];
+	var params = req.query;
+	if(token) {
+		if(config.checkToken(token).isExpired) {  //token过期
+			res.send('Access token has expired', 400)
+		} else {
+			token = config.checkToken(token).tokenData;
+			var userId = token.iss;
+			if(params.type == 'in') {  //买入
+				var sql = "select orders.id, user.userName as sellerName, orders.sellerId, title, price, orders.status, items.imgPath, time from items, orders, user where\
+				 user.id = orders.sellerId and orders.itemId = items.id and buyerId = ?";
+				conn.query(sql, [userId], function(err, result) {
+					if (err) {
+						console.log("错误："+err);
 					}
-					if(collectItems != null) {
-						collectItems = collectItems.split('&').length;
-					} else {
-						collectItems = 0;
+					if (result) {
+						res.json(result)
 					}
-					publishedCount = result[0].publishedCount;
-					option.push(publishedCount, collectItems, buyItems, sellItems);
-					res.json(option)
+				})
+			}
+			if(params.type == 'out') {  //卖出
+				var sql = "select orders.id, user.userName as buyerName, orders.buyerId, title, price, orders.status, items.imgPath, time from items, orders, user where\
+				 user.id = orders.buyerId and orders.itemId = items.id and orders.sellerId = ?";
+				conn.query(sql, [userId], function(err, result) {
+					if (err) {
+						console.log("错误："+err);
+					}
+					if (result) {
+						res.json(result)
+					}
+				})
+			}
+			
+		}
+	}
+});
+
+//填写支付帐号
+router.post('/insertAccount', (req, res) => {
+	var token = req.headers['token'], params = req.body;
+	var account = params.account;
+	console.log(account)
+	if(token) {
+		if(config.checkToken(token).isExpired) {  //token过期
+			res.send('Access token has expired', 400)
+		} else {
+			token = config.checkToken(token).tokenData;
+			var userId = token.iss;
+			var sql = "update user set account = ? where id = ?";
+			conn.query(sql, [account, userId], function(err, result) {
+				if (err) {
+					console.log("错误："+err);
+				}
+				if (result) {
+					res.json({msg: 200})
+				}
+			})
+		}
+	}
+});
+
+//获取支付帐号
+router.get('/getAccount', (req, res) => {
+	var token = req.headers['token'], params = req.query;
+	var orderId = params.orderId;
+	if(token) {
+		if(config.checkToken(token).isExpired) {  //token过期
+			res.send('Access token has expired', 400)
+		} else {
+			var sql = "select account, userName from user where user.id = (select sellerId from orders where id = ?)";
+			conn.query(sql, [orderId], function(err, result) {
+				if (err) {
+					console.log("错误："+err);
+				}
+				if (result) {
+					res.json(result)
 				}
 			})
 		}
