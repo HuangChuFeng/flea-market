@@ -14,11 +14,11 @@ import io from 'socket.io-client'
 
 
 var UserName = store.state.UserName;
-global.msg = '来自main.js的新消息';
+// global.msg = '来自main.js的新消息';
 
 //建立socket连接
 global.socket = io('http://localhost:3000');
-if(token) {
+// if(token) {
   global.socket.emit('comming in', {
     userName: UserName
   });
@@ -28,18 +28,18 @@ if(token) {
   //接收消息
   global.socket.on('to'+UserName, function (data, fn) {
       fn('sendSuccess');
-      myFun.showMsg('您有来自'+data.from+'的新消息');
+      myFun.showMsg('您有来自'+data.from+'的新消息', 0);
       console.log('您有来自'+data.from+'的新消息');
 
   });
-}
+// }
 Vue.prototype.myFun = myFun  //引入外部js文件
 Vue.use(VueResource) 
 //路由拦截，判断目标路由是否需要权限
 router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!token) {
-      myFun.showMsg('请登录');
+      myFun.showMsg('请登录', 0);
       setTimeout(function(){
           $('#login').click();
     },1500)
@@ -62,8 +62,6 @@ Vue.http.interceptors.push((request, next) => {
     return error;  
   });  
 });
-
-
 
 Vue.config.productionTip = false
 

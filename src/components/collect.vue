@@ -1,5 +1,5 @@
 <template>
-	<div class="items">
+	<div class="">
 			<div class="items-box">
 				<div class="item-list box-shadow" v-for="item in items">
 						<div class="img">
@@ -82,7 +82,7 @@ export default {
               console.log(_this.items)
                 _this.items.splice(index, 1);
                 console.log(_this.items)
-                _this.myFun.showMsg('已取消收藏')
+                _this.myFun.showMsg('已取消收藏', 1)
             },
             error: function(error) {
               _this.myFun.tokenExpired(error)

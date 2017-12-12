@@ -28,7 +28,6 @@ export default new Router({
     { 
         path: '/items', 
         component: Items,
-        redirect: '/items/published',
         children: [
         { path: '/items/published', component: Published, meta: { requiresAuth: true }},
         { path: '/items/collect', component: Collect },

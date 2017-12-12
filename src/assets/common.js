@@ -1,9 +1,14 @@
 ﻿import router from '../router'
 import store from '../vuex/store'
 var myFun = {
-	showMsg: function(text) {
+	showMsg: function(text, type) {
+		if(type == '1') {
+			$('#msg').find('i').addClass('yes');
+		} else {
+			$('#msg').find('i').addClass('error')
+		}
 		$('#msg').find('span').text(text);
-		$('#msg').fadeIn(2500);
+		$('#msg').fadeIn(2000);
 		setTimeout(function(){
 			$('#msg').fadeOut(500);
 		},500)

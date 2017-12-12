@@ -36,7 +36,7 @@
 				    </div>
 				  </div>
 				  <div class="img-box">
-				  	<div class="add-img" v-if="item.imgPath.length < 4">
+				  	<div class="add-img">
 					  	<label>
 					  		<input type="file" ref="imgPath" name="img[]" @change='addImg'/>
 					  	</label>
@@ -72,8 +72,10 @@ export default {
 	    options: [                 //商品类型
 	      { text: '书籍教材', value: '书籍教材' },
 	      { text: '生活用品', value: '生活用品' },
+	      { text: '衣物', value: '衣物' },
+	      { text: '化妆洗护', value: '化妆洗护' },
 	      { text: '交通工具', value: '交通工具' },
-	      { text: '体育用品', value: '体育用品' }
+	      { text: '体育用品', value: '体育用品' },
 	    ],
     	item: {
     		title: null,		       // 标题
@@ -124,6 +126,9 @@ export default {
 	    	this.$emit("childMethod",val);
 	    }
 	},
+    updated: function() {
+        $('.img-box').scrollTop( $('.img-box')[0].scrollHeight );
+    },
   methods: {
   	cancelAdd() {
   		if(this.childOpType != 'add') {
@@ -186,7 +191,7 @@ export default {
 			}
 		} else {
 			if(this.oldImg.length == 0){
-				this.myFun.showMsg('请添加图片')
+				this.myFun.showMsg('请添加图片', 0)
 			}
 		}
 		formdata.append('token', this.$store.state.Token);
@@ -250,15 +255,32 @@ export default {
 	text-align: left;
 	min-height: 200px;
 	display: flex;
-	overflow: hidden;
+	overflow-y: auto;
 	justify-content: space-around;
 	flex-wrap: wrap;
+	&::-webkit-scrollbar {  
+        width: 5px;  
+        height: 5px;  
+        background-color: #eee;  
+    }
+/*定义滑块 内阴影+圆角*/  
+    &::-webkit-scrollbar-thumb {  
+        border-radius: 5px;  
+        -webkit-box-shadow: 0 0 6px rgba(255,255,255,.3);  
+        background-color: #ccc;  
+    }  
+    /*滑块效果*/
+    &::-webkit-scrollbar-thumb:hover {
+        border-radius: 5px;
+        -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        background: rgba(0,0,0,0.4);
+    }
 	.img {
 		order: -1;
 		width: 160px;
 		height: 160px;
 		margin-bottom: 5px;
-		background-color: rgba(255, 255, 255, 0.6);
+		background-color: rgba(255, 255, 255, 0.9);
 		text-align: center;
 		&:hover {
 			background-color: #fff;

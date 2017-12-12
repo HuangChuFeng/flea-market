@@ -1,21 +1,43 @@
 <template>
 	<div class="dialog">
-        <p class="current-contacts"><i @click='back' class="icon back"></i>{{toChatMsg.sellerInfo.name}}</p>
+        <p class="current-contacts">
+            <i @click='back' class="icon back"></i>{{toChatMsg.sellerInfo.name}}
+        </p>
 		<div class="message-box">
 			<div class="msg-line" v-for="msg in msgArr"
-            v-bind:class="isUserMsg(msg.fromName) ? 'user-msg' : 'contacts-msg'">
-                <div v-if="!isUserMsg(msg.fromName)"><span class="name">{{msg.fromName}}</span>
-                    <span class="msg-left">{{msg.content}}</span>
+                v-bind:class="isUserMsg(msg.fromName) ? 'user-msg' : 'contacts-msg'">
+                <div v-if="!isUserMsg(msg.fromName)">
+                    <span class="name">{{msg.fromName}}</span>
+                    <span class="msg-left" v-if="msg.type == 0">{{msg.content}}</span>
+                    <span class="msg-left" v-else>
+                        <div class="img-record"><img :src="msg.content" @click="preview"/>
+                        </div>
+                    </span>
                 </div>
+                <p class="time-notice" v-if="msg.overTime">{{msg.overTime}}</p>
                 <div v-if="isUserMsg(msg.fromName)">
-                    <span class="unread" v-if="msg.status == 0">未读</span><span class="msg-right">{{msg.content}}</span><span class="name">{{msg.fromName}}</span>
+                    <span class="unread" v-if="msg.status == 0">未读</span>
+                    <span class="msg-right" v-if="msg.type == 0">{{msg.content}}</span>
+                    <span class="msg-right" v-else>
+                        <div class="img-record"><img :src="msg.content" @click="preview"/>
+                        </div>
+                    </span>
+                    <span class="name">{{msg.fromName}}</span>
                 </div>
 			</div>
 		</div>
 		<div class="send">
-			<textarea class="input-message form-control" v-model="inputMsg" @keyup.enter='send'>
-			</textarea>
-			<div @click='send' class="send-btn"><i class="send-icon icon"></i></div>
+            <div class="input-message">
+                <textarea class="form-control" v-model="inputMsg" @keyup.enter='send'>
+                </textarea>
+                <div class="viewImg" v-show="tempImg != null"><img :src="viewSrc"></div>
+            </div>
+            <div class="btn-wrap">
+                <label class="select-pic icon"><input type="file" name="imgMsg" @change="viewImg"/></label>
+                <div @click='send' class="send-btn">
+                    <i class="send-icon icon"></i>
+                </div>
+            </div>
 		</div>
 	</div>
 </template>
@@ -30,6 +52,9 @@ export default {
     		inputMsg: null,    //输入消息
     		userName: this.$store.state.UserName,
             msgArr: [], 
+            viewSrc: null,   //发送图片时的预览地址
+            tempImg: null,
+            vm: this,
             
     	}
     },
@@ -38,10 +63,15 @@ export default {
     watch: {
         msgArr(val) {
             //让滚动条始终置于底部
-            this.$nextTick(function(){
-                $('.message-box').scrollTop( $('.message-box')[0].scrollHeight );
-            })
         },
+        'msgArr': {
+            handler:(val,oldVal)=>{
+            },
+            deep:true
+        }
+    },
+    updated: function() {
+        $('.message-box').scrollTop( $('.message-box')[0].scrollHeight );
     },
     mounted: function() {
         //接收消息
@@ -49,16 +79,24 @@ export default {
         //接收消息
         global.socket.on('to'+this.userName, function (data, fn) {
             fn('sendSuccess');
-            console.log(data);
             console.log('接受消息的对象：'+data.from);
             console.log('当前对象:'+_this.toChatMsg.sellerInfo.name)
             //如果当前聊天对象为正在发送消息给我的对象则把消息加入消息列表
             if(_this.toChatMsg.sellerInfo.name == data.from) { 
                 _this.toChatMsg.sellerInfo.name = data.from;
-                _this.msgArr.push({
-                    content:data.msg,
-                    fromName: data.from
-                });
+                if(data.msg.type == 1) {
+                    _this.msgArr.push({
+                        content:data.msg.content,
+                        fromName: data.from,
+                        type: 1
+                    });
+                } else {
+                    _this.msgArr.push({
+                        content:data.msg.content,
+                        fromName: data.from,
+                        type: 0
+                    });
+                }
             } else {   //否则在正在发消息的联系人上添加有新信息标志
                 _this.$emit("get-new-msg",data.from);
 
@@ -73,22 +111,83 @@ export default {
                 return false;
             }
         },
-        send() {
-            if(this.inputMsg != null && this.inputMsg != '\n') {
-                var from = this.userName,
-                    to = this.toChatMsg.sellerInfo.name,
-                    msg = this.inputMsg;
-                this.msgArr.push({
-                    content: msg,
-                    fromName: this.userName
-                })
-                global.socket.emit('private message', from , to, msg);
-                this.inputMsg = null;
-            } else {
-                this.myFun.showMsg('消息不能为空')
+        //图片消息预览
+        viewImg(e) {
+            var files = e.target.files || e.dataTransfer.files;
+            this.tempImg = files[0];
+            if (!files.length) return; 
+            this.createImage(files);
+            $(window).keydown(event => {
+                if(event.keyCode==8) {
+                    this.tempImg = null;
+                }
+            });
+        },
+        createImage(file) {
+            if(typeof FileReader==='undefined'){
+                alert('您的浏览器不支持图片上传，请升级您的浏览器');
+                return false;
+            }
+            var vm = this;
+            var leng = file.length;
+            for(var i = 0; i < leng; i++){
+                var reader = new FileReader();
+                reader.readAsDataURL(file[i]); 
+                reader.onload = function(e) {
+                    vm.viewSrc = e.target.result;
+                };                 
             }
         },
-        switchContacts(newName, oldName) {
+        send() {
+            var from = this.userName,
+                to = this.toChatMsg.sellerInfo.name,
+                msg, type;
+            if(to) {
+                //消息类型为图片
+                if(this.tempImg != null) {
+                    //ajax上传图片成功后再发送
+                    var formdata = new FormData();          
+                    formdata.enctype = "multipart/form-data";
+                    formdata.append('imgMsg', this.tempImg);
+                    var _this = this;
+                    $.ajax({
+                        url: "/api/chat/sendMsg",
+                        type: "post",
+                        data: formdata,
+                        processData: false, // 不处理数据
+                        contentType: false, // 不设置请求头
+                        cache: false,
+                        success: function(data){
+                            msg = { content: data.msgPath,
+                                    type: 1};
+                            global.socket.emit('private message', from , to, msg);
+                            _this.msgArr.push({
+                                content: msg.content,
+                                fromName: _this.userName,
+                                type: 1
+                            })
+                            _this.tempImg = null;
+                        },
+                        error: function(error) {
+                            _this.myFun.tokenExpired(error)
+                            console.log("发布失败");
+                        }
+                    })  
+
+                } else {  //消息类型为文字
+                    msg = { content: this.inputMsg,
+                            type: 0};
+                    global.socket.emit('private message', from , to, msg);
+                    this.inputMsg = null;
+                    this.msgArr.push({
+                        content: msg.content,
+                        fromName: this.userName,
+                        type: 0
+                    })
+                }
+            } else {
+                this.myFun.showMsg('您还没有联系人', 0)
+            }
         },
         //获取用户与某个联系人的聊天记录
         getChatRecord(contactsName, oldName) {
@@ -105,6 +204,12 @@ export default {
                 },
                 success: function(data){
                     _this.msgArr = data;
+                    for (var i = 0; i < data.length-1; i++) {
+                        //两次发消息时间超过一天
+                        if(new Date(data[i+1].createdTime) - new Date(data[i].createdTime) > 2 * 3600 * 1000) {
+                            data[i+1]['overTime'] = data[i+1].createdTime.replace(/T/, ' ').split('.')[0];
+                        }
+                    }
                     _this.$nextTick(function(){
                         $('.message-box').scrollTop( $('.message-box')[0].scrollHeight );
                     })
@@ -117,6 +222,12 @@ export default {
         },
         back() {
             this.$router.go(-1)
+        },
+        //预览大图
+        preview(e) {
+            $('#bigImg img').attr('src', e.target.src)
+            $('#bigImg').fadeIn();
+            $('#bigImg img').css('animation', 'enlarge 1s')
         }
     }
 }
@@ -140,7 +251,7 @@ export default {
         }
     }
     .message-box {
-        height: 24.75rem;
+        height: 65%;
         width: 100%;
         padding: 0 1.875rem 0.625rem 1.875rem;
         overflow-y: scroll;
@@ -150,13 +261,8 @@ export default {
             width: 0.375rem;  
             height: 0.375rem;  
             background-color: #eee;  
-        }  
-      //   &::-webkit-scrollbar-track {  
-      //     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);  
-      //     border-radius: 10px;  
-      //     background-color: #F5F5F5;  
-      // }    
-      /*定义滑块 内阴影+圆角*/  
+        }
+        /*定义滑块 内阴影+圆角*/  
         &::-webkit-scrollbar-thumb {  
             border-radius: 0.375rem;  
             -webkit-box-shadow: 0 0 6px rgba(255,255,255,.3);  
@@ -190,7 +296,7 @@ export default {
                     width: 0;
                     height: 0;
                     position: absolute;
-                    top: 5px;
+                    top: 6px;
                     border: solid 10px;
                     font-size: 0;
                 }
@@ -199,6 +305,18 @@ export default {
                     position: relative;
                     line-height: 100%;
                 }
+                .img-record {
+                    max-width: 11rem;
+                    height: auto;
+                    display: inline-block;
+                    img {
+                        max-width: 100%;
+                        max-height: 100%;
+                        &:hover {
+                            cursor: pointer;
+                        }
+                    }
+                }
             }
             .msg-right {
                 background: rgba(0, 0, 0, 0.7);
@@ -206,12 +324,6 @@ export default {
                     right: -16px;
                     border-color: transparent transparent transparent rgba(0, 0, 0, 0.7);
                 }
-                // background: #eee;
-                // color: #000;
-                // &:after {
-                //     right: -16px;
-                //     border-color: transparent transparent transparent #eee;
-                // }
             }
             .msg-left {
                 background: rgba(8, 7, 177, .9);
@@ -237,30 +349,71 @@ export default {
             margin-right: 1.25rem;
         }
     }
-
+    .time-notice {
+        text-align: center;
+        color: #fff;
+        font-size: 0.8rem;
+        margin-top: 2rem;
+    }
     .send {
-        height: 10.625rem;
+        height: 25%;
         width: 100%;
+        position: relative;
         padding: 0 0 0.9375rem 0.9375rem;
         .input-message {
             width: 85%;
             height: 90%;
             float: left;
-            background: rgba(255, 255, 255, 0.7);
             color: #000;
-            // border: 1px solid #fff;
+            textarea {
+                background: rgba(255, 255, 255, 0.7);
+                width: 100%;
+                height: 100%;
+                position: relative;
+                // bottom: 70%;
+                z-index: 2;
+            }
+            .viewImg {
+                position: absolute;
+                display: inline-block;
+                width: 6rem;
+                height: 6rem;
+                top: 1rem;
+                left: 2rem;
+                float: left;
+                z-index: 3;
+                img {
+                    max-width: 100%;
+                    max-height: 100%;
+                }
+            }
         }
-        .send-btn {
+        .btn-wrap {
             float: right;
-            margin-right: 4%;
-            background: rgba(8, 7, 177, .9);
-            border-radius: 50%;
-            width: 2.5rem;
-        }
-        .send-icon {
-           position: relative;
-           top: 0.1875rem;
+            margin-right: 3%;
+            .select-pic {
+                margin: 0;
+                input {
+                    display: none;
+                }
+            }
+            .send-btn {
+                margin-right: 3%;
+                width: 2.5rem;
+            }
+            .send-icon {
+               position: relative;
+               top: 0.1875rem;
+            }
         }
     }
 }
+@media screen and (max-width:600px){
+  .dialog {
+    .message-box {
+    }
+    .send {
+    }
+  }
+}  
 </style>

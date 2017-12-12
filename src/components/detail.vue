@@ -18,7 +18,7 @@
 				<p>来自 
 					<span v-if="item.sellerId == userId">{{item.userName}}</span>
 					<router-link :to="{path:'/message',query: {sellerId: item.sellerId, sellerName: encodeURI(encodeURI(item.userName))}}" v-else>
-					{{item.userName}}{{item.sellerId}}</router-link>
+					{{item.userName}}</router-link>
 
 				</p>
 				<p>商家描述： {{item.description}}</p>
@@ -28,7 +28,7 @@
 					<button type="button" class="btn btn-submit" v-if="isCollect" @click='collect'>取消收藏</button>
 					<button type="button" class="btn btn-submit" v-else @click='collect'>收 藏</button>
 					<span></span>
-					<button type="button" class="btn btn-submit" @click='buy'>入 手</button>
+					<button v-if="item.sellerId != userId" type="button" class="btn btn-submit" @click='buy'>入 手</button>
 				</div>
 			</div>
 		</div>
@@ -101,10 +101,10 @@ export default {
 		            success: function(data){
 		              if( type == 0) {
 		                _this.isCollect = false;
-		                _this.myFun.showMsg('已取消收藏')
+		                _this.myFun.showMsg('已取消收藏', 1)
 		              } else {
 		                _this.isCollect = true;
-		                _this.myFun.showMsg('收藏成功')
+		                _this.myFun.showMsg('收藏成功', 1)
 		              }
 		            },
 		            error: function(error) {
@@ -120,7 +120,10 @@ export default {
 		        itemId: this.itemId,
 		        sellerId: this.item.sellerId
 		    },{}).then((response) => {
-				console.log(response.body);
+		    	console.log(response.body)
+		    	if(response.body.exist) {
+		    		this.myFun.showMsg('该订单已存在', 0);
+		    	}
 				if(response.body.msg == 200) {
 					this.$router.push({ path: '/items/buyin' });
 				}

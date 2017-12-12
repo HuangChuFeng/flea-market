@@ -1,6 +1,6 @@
 <template>
-<div>
-	<div class="nav">
+  <div>
+   <div class="nav">
     <div class="portrait">
       <div class="img">
         <img :src="toChildMsg.imgSrc" id="nav_portrait" />
@@ -9,45 +9,59 @@
     </div> 
     <ul @click='liActive'>
       <li><i class="icon index"></i><router-link to="/index">首页</router-link><span class="bottom-line"></span></li>
-      <li><i class="icon items-icon"></i><router-link to="/items">我的宝贝</router-link><span class="bottom-line"></span></li>
+      <li v-on:click="toggleSubMenu">
+        <i class="icon items-icon"></i><router-link to="">我的宝贝</router-link><i class = "down"></i>
+        <!-- <span class="bottom-line"></span> -->
+        <ul class="sub-menu" @click.stop="">
+          <li><router-link to="/items/published">已发布</router-link></li>
+          <li><router-link to="/items/collect">已收藏</router-link></li>
+          <li><router-link to="/items/sale">卖出</router-link></li>
+          <li><router-link to="/items/buyin">买入</router-link></li>
+        </ul>
+      </li>
       <li><i class="icon personal"></i><router-link to="/personal">个人中心</router-link><span class="bottom-line"></span></li>
       <li><i class="icon message"></i>
         <router-link :to="{path: '/message', query: unreadCount != null ?{unread: unreadCount} : null}">消息
-          <span id="unreadCount">{{unreadCount}}</span>
-        </router-link>
-        <span class="bottom-line"></span>
-      </li>
-      <li><i class="icon reg_log"></i>
-        <router-link to="#" v-if="toChildMsg.isExit" data-toggle="modal" data-target="#loginModal" id="login">登录&nbsp;&nbsp;/</router-link>
-        <router-link to="#" v-if="toChildMsg.isExit" data-toggle="modal" data-target="#regModal" id="reg">&nbsp;&nbsp;注册</router-link>
-        <a href="javascript:;" v-else id="Exit" @click='Exit'>退出</a>
+        <span id="unreadCount">{{unreadCount}}</span>
+      </router-link>
+      <span class="bottom-line"></span>
+    </li>
+    <li><i class="icon reg_log"></i>
+      <router-link to="#" v-if="toChildMsg.isExit" data-toggle="modal" data-target="#loginModal" id="login">登录&nbsp;&nbsp;/</router-link>
+      <router-link to="#" v-if="toChildMsg.isExit" data-toggle="modal" data-target="#regModal" id="reg">&nbsp;&nbsp;注册</router-link>
+      <a href="javascript:;" v-else id="Exit" @click='Exit'>退出</a>
       <span class="bottom-line"></span></li>
     </ul>
-  <div class="triangle"></div>
+    <div class="triangle"></div>
   </div>
-    <Reglog :parent-msg="toChildMsg" @parent-msg-change='parentMsgChange'></Reglog>
-  </div>
+  <Reglog :parent-msg="toChildMsg" @parent-msg-change='parentMsgChange'></Reglog>
+</div>
 </template>
 <script>
-import Reglog from '@/components/reg_log'
+  import Reglog from '@/components/reg_log'
 
-export default {
-  components: { 
-    Reglog
-  },
-  data () {
-    return {
-      toChildMsg: {
-        isExit: true,
-        username: '',
-        imgSrc: ''
-      },
-      unReadObj: {},
+  export default {
+    components: { 
+      Reglog
+    },
+    data () {
+      return {
+        toChildMsg: {
+          isExit: true,
+          username: '',
+          imgSrc: ''
+        },
+        unReadObj: {},
       unreadCount: null,  //未读消息总数
+      flag: false
     }
   },
   mounted: function () { 
-    // $('ul li:first').find('.bottom-line').addClass('li-active');
+    var href = this.$route.path;
+    $(".nav a[href='#"+href+"']").next().addClass('li-active')
+    if(href.indexOf('items') >= 0) {
+      $('.sub-menu').toggle()
+    }
     if(this.$store.state.UserName) {
       this.toChildMsg.username = this.$store.state.UserName;
       this.toChildMsg.isExit = false;
@@ -104,7 +118,16 @@ export default {
       var e = e.target;
       $(e).next().addClass('li-active');
       $(e).parent().siblings().children('.bottom-line').removeClass('li-active')
-
+    },
+    toggleSubMenu() {
+      if(!this.flag) {
+        $('.down').css("transform","rotate(540deg)");
+        this.flag = true;
+      } else {
+        $('.down').css("transform","rotate(-360deg)");
+        this.flag = false;
+      }
+      $('.sub-menu').toggle(500);
     }
   }
 }
@@ -118,15 +141,9 @@ export default {
     margin-left: 10px;
   }
   .nav {
-    width: 18.75rem;
-    height: 100%;
-    position: fixed;
-    padding: 20px;
-    background: #333;
-    background: rgba(255, 255, 255, 0.2);
-        a:focus {
-          color: inherit;
-        }
+    a:focus {
+      color: inherit;
+    }
 
     ul {
       color: #eee;
@@ -147,16 +164,13 @@ export default {
           left: -10px;
           transition: width .2s;
         }
-        &:hover {
+        &:hover{
           .bottom-line {
-            width: 80%;
+            width: 120%;
           }
         }
         .li-active {
-          width: 80%;
-        }
-        a.router-link-exact-active.router-link-active {
-          color: #fff;
+          width: 120%;
         }
         &:last-child {
           a {
@@ -183,14 +197,44 @@ export default {
         .reg_log {
           background-image: url(../assets/img/reg_log.png);
           margin-left: 1px;
+          margin-right: 10px;
         }
-
+        .down {
+          width: 15px;
+          height: 8px;
+          display: inline-block;
+          position: relative;
+          bottom: 1px;
+          left: 35%;
+          background-image: url(../assets/img/down.png);
+          background-size: 15px 8px;
+          transition: transform 1s;
+        }
+      }
+      .sub-menu {
+        margin: 0;
+        padding-left: 25%;
+        display: none;
+        li {
+          font-size: 0.9rem;
+          line-height: 20px;
+          transition: none;
+          &:hover {
+            color: #c25a4f;
+          }
+          &:last-child {
+            padding-left: 25px;
+          }
+          a.router-link-exact-active.router-link-active {
+            color: #c25a4f;
+          }
+        }
       }
     }
     .portrait {
       padding: 0 20px;
       color: #eee;
-      margin-left: -25px;
+      // margin-left: 5px;
       text-align: left;
       .img {
         width: 60px;
@@ -209,7 +253,7 @@ export default {
       }
       a {
         position: relative;
-        left: 5px;
+        left: 15px;
         font-size: 0.8rem;
         bottom: 20px;
       }
@@ -224,24 +268,24 @@ export default {
       width: 120%;
     }
   }
-  .triangle {
-    height: 550px;
-    width: 170px;
-    position: absolute;
-    top: 55px;
-    left: 100px;
-    border: 1px solid blue;
-    border-left-: 250px;
-    z-index: -1;
-    &:before {
-      content: '';
-      display: block;
-      width: 200px;
-      height: 500px;
-      background: rgba(2, 2, 123, .9);
-      position: absolute;
-      right: 75px;
-      top: -80px;
-    }
-  }
+  // .triangle {
+  //   height: 550px;
+  //   width: 170px;
+  //   position: absolute;
+  //   top: 55px;
+  //   left: 100px;
+  //   border: 1px solid blue;
+  //   border-left-: 250px;
+  //   z-index: -1;
+  //   &:before {
+  //     content: '';
+  //     display: block;
+  //     width: 200px;
+  //     height: 500px;
+  //     background: rgba(2, 2, 123, .9);
+  //     position: absolute;
+  //     right: 75px;
+  //     top: -80px;
+  //   }
+  // }
 </style>

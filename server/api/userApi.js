@@ -55,9 +55,9 @@ router.get('/checkEmail', (req, res) => {
 			for (var i = 0; i < result.length; i++) {
 				emailArr.push(result[i].email)
 			}
-			if(emailArr.indexOf(params.inputEmail) >= 0) {
+			if(emailArr.indexOf(params.inputEmail) >= 0) { //邮箱存在
 					res.json({occupy: true})
-			} else {
+			} else {  //不存在
 				res.json({occupy: false});
 			}
 		}

@@ -96,7 +96,11 @@ export default {
     	option: {
     		title : {
 		        text: '各类商品占比',
-		        x:'center'
+		        x:'center',
+		        textStyle: {
+                    fontWeight: 'normal',              //标题颜色
+                    color: '#eee'
+                },
 		    },
 		    tooltip : {
 		        trigger: 'item',
@@ -105,6 +109,9 @@ export default {
 		    legend: {
 		        orient: 'vertical',
 		        left: 'left',
+		        textStyle: {
+                    color: '#eee'
+                },
 		        data: ['发布商品','收藏商品','买入商品','售出商品']
 		    },
 		    series : [
@@ -184,16 +191,16 @@ export default {
   	},
   	modifyPwd() {
   		if(this.pwd != this.rpwd) {
-  			this.myFun.showMsg('两次密码不一致');
+  			this.myFun.showMsg('两次密码不一致', 0);
   		} else if(this.pwd == '' || this.rpwd == '') {
-  			this.myFun.showMsg('密码不能为空');
+  			this.myFun.showMsg('密码不能为空', 0);
   		} else {
   			this.$http.post('/api/user/modifyInfo', {
   				newPwd: this.rpwd,
   				token: this.$store.state.Token
 		    },{}).then((response) => {
 		    	if(response.code = 200){
-			    	this.myFun.showMsg('密码修改成功')
+			    	this.myFun.showMsg('密码修改成功', 1)
 					this.isChangePwd = false;
 				}
 		    })
@@ -218,7 +225,7 @@ export default {
             success: function(data){
                 if(data.imgSrc) {
                 	console.log('上传成功')
-                	_this.myFun.showMsg('上传头像成功')
+                	_this.myFun.showMsg('上传头像成功', 1)
                 	_this.src = _this.newSrc;
                 	_this.$store.commit('setUserImg', data.imgSrc);
                 	$('#nav_portrait').attr("src",data.imgSrc);
@@ -228,7 +235,7 @@ export default {
             },
             error: function(error) {
             	console.log(error)
-            	_this.myFun.showMsg("上传头像失败");
+            	_this.myFun.showMsg("上传头像失败", 0);
             }
         })
   	},
@@ -241,7 +248,7 @@ export default {
 				account: this.inputAccount
 		    },{}).then((response) => {
 		    	this.inputAccount = null;
-				this.myFun.showMsg('填写支付帐号成功')
+				this.myFun.showMsg('填写支付帐号成功', 1)
 				this.isChangeAccount = false;
 		    })
 		    .catch(function(response) {
@@ -261,6 +268,7 @@ header {
 	width: 100%;
 	height: 30px;
 	margin-bottom: 30px;
+	color: #eee;
 	span {
 	  	display: inline-block;
 	    position: relative;

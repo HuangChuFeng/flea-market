@@ -16,17 +16,17 @@
 				<form class="form-horizontal form" v-show='showLoginForm'>
 				  <div class="form-group">
 				    <label for="inputEmail" class="col-sm-4 control-label">邮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;箱：</label>
-				    <div class="col-sm-5">
+				    <div><div class="col-sm-5">
 				      <input type="email" class="form-control" id="inputEmail"
-				      name="email" v-model.trim='email' placeholder="邮箱">
-				    </div>
+				      name="email" v-model.trim='email' @keyup="logInputBlur('email')" @blur="logInputBlur('email')" placeholder="邮箱">
+				    </div><span class="notice"><i class="icon check" v-if="logLegal.email"></i>{{logNotice.email}}</span></div>
 				  </div>
 				  <div class="form-group">
 				    <label for="inputPwd" class="col-sm-4 control-label">密&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;码：</label>
-				    <div class="col-sm-5">
+				    <div><div class="col-sm-5">
 				      <input type="password" class="form-control" id="inputPwd"
-				      name="pwd" v-model.trim='pwd' placeholder="密码">
-				    </div>
+				      name="pwd" v-model.trim='pwd' @keyup="logInputBlur('pwd')" @blur="logInputBlur('pwd')" placeholder="密码">
+				      </div><span class="notice"><i class="icon check" v-if="logLegal.pwd"></i>{{logNotice.pwd}}</span></div>
 				  </div>
 				  <div class="form-group extra-op">
 				    	<span @click="forgetPwd">忘记密码</span> &nbsp;|&nbsp;
@@ -37,7 +37,7 @@
 					  <button type="button" class="btn btn-cancel" data-dismiss="modal">取消
 					  </button>
 					  <span></span>
-					  <button type="button" class="btn btn-submit" @click="login($data)">登录</button>
+					  <button type="button" class="btn btn-submit" @click="login($data)" :disabled='logBtnDisable'>登录</button>
 				    </div>
 				  </div>
 				  </form>
@@ -46,6 +46,8 @@
 					<input type='email' name="email" class="form-control" v-model='email'/>
 					<p class="reset-success" v-show="resetSuccess"><span>重置密码成功！</span>1s后自动回到登录界面</p>
 					<div class="btn-box">
+						<button class="btn btn-cancel" @click="showLoginForm = true;">返 回</button>
+						<span></span>
 						<button class="btn btn-submit" @click="sendEamil">发送邮件</button>
 					</div>
 				</div>
@@ -70,31 +72,31 @@
 				<form class="form-horizontal form">
 				 	<div class="form-group">
 				    <label for="inputName" class="col-sm-4 control-label">用&nbsp; 户&nbsp;名：</label>
-				    <div class="col-sm-5">
-				      <input type="email" class="form-control" id="inputName" @blur = "inputBlur('username')"
+				    <div><div class="col-sm-5">
+				      <input type="email" class="form-control" id="inputName" @blur="inputBlur('username')" @keyup = "inputBlur('username')"
 				      name="username" v-model.trim='username' placeholder="用户名">
-				    </div>
+				    </div><span class="notice"><i class="icon check" v-if="legal.userName"></i>{{notice.userName}}</span></div>
 				  </div>
 				  <div class="form-group">
 				    <label for="inputEmail" class="col-sm-4 control-label">邮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;箱：</label>
-				    <div class="col-sm-5">
-				      <input type="email" class="form-control" id="inputEmail" @blur = "inputBlur('email')"
+				    <div><div class="col-sm-5">
+				      <input type="email" class="form-control" id="inputEmail" @blur="inputBlur('email')" @keyup = "inputBlur('email')"
 				      name="email" v-model.trim='email' placeholder="邮箱">
-				    </div>
+				    </div><span class="notice"><i class="icon check" v-if="legal.email"></i>{{notice.email}}</span></div>
 				  </div>
 				  <div class="form-group">
 				    <label for="inputPwd" class="col-sm-4 control-label">密&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;码：</label>
-				    <div class="col-sm-5">
-				      <input type="password" class="form-control" id="inputEmail" @blur="inputBlur('pwd')"
+				    <div><div class="col-sm-5">
+				      <input type="password" class="form-control" id="inputEmail" @blur="inputBlur('pwd')" @keyup="inputBlur('pwd')"
 				      name="pwd" v-model.trim='pwd' placeholder="密码">
-				    </div>
+				    </div><span class="notice"><i class="icon check" v-if="legal.pwd"></i>{{notice.pwd}}</span></div>
 				  </div>
 				  <div class="form-group">
 				    <label for="inputRpwd" class="col-sm-4 control-label">重复密码：</label>
-				    <div class="col-sm-5">
-				      <input type="password" class="form-control" id="inputRpwd" @blur="inputBlur('rpwd')"
+				    <div><div class="col-sm-5">
+				      <input type="password" class="form-control" id="inputRpwd" @blur="inputBlur('rpwd')" @keyup="inputBlur('rpwd')"
 				      v-model.trim='rpwd' placeholder="重复密码">
-				    </div>
+				    </div><span class="notice"><i class="icon check" v-if="legal.rpwd"></i>{{notice.rpwd}}</span></div>
 				  </div>
 				  <div class="form-group extra-op">
 				    	<span @click='switch1(0)'>快速登录 ></span>
@@ -121,16 +123,31 @@ export default {
 	  return {
 	  	username: '',
 	  	userid: '',
-	  	email: 'sss@qq.com',
-	  	pwd: 'sss',
+	  	email: '',
+	  	pwd: '',
 	  	rpwd: '',
 	  	childMsg: this.parentMsg,
-	  	regBtnDisable: true,
+	  	regBtnDisable: true, //注册按钮禁用
+	  	logBtnDisable: true, //登录按钮禁用
+	  	logLegal: {
+	  		email: false,
+	  		pwd: false
+	  	},
+	  	logNotice: {
+	  		email: null,
+	  		pwd: null
+	  	},
 	  	legal: {
 	  		userName: false,
 	  		email: false,
 	  		pwd: false,
 	  		rpwd: false
+	  	},
+	  	notice: {
+	  		userName: null,
+	  		email: null,
+	  		pwd: null,
+	  		rpwd: null
 	  	},
 	  	showLoginForm: true,    //是否显示登录表单
 	  	resetSuccess: false
@@ -152,9 +169,10 @@ export default {
 				case 'username':
 					if(this.username == '') {
 						this.legal.userName = false;
-						console.log('用户名不能为空')
+						this.notice.userName = '用户名不能为空';
 					} else {
 						this.legal.userName = true;
+						this.notice.userName = null;
 					}
 					break;
 				case 'email':
@@ -167,11 +185,11 @@ export default {
 				            data: {inputEmail: _this.email},
 				            success: function(data){
 			            		if(data.occupy) {
-			            			console.log('邮箱已被占用')
+			            			_this.notice.email = '邮箱已被占用';
 			            			_this.legal.email = false;
 			            		} else {
-			            			console.log('邮箱可以使用')
 			            			_this.legal.email = true;
+			            			_this.notice.email = null;
 			            		}
 				            },
 				            error: function(error) {
@@ -179,24 +197,26 @@ export default {
 				            }
 				        });
 					} else {
-						console.log('邮箱格式错误')
+						this.notice.email = '邮箱格式错误';
 						this.legal.email = false;
 					}
 					break;
 				case 'pwd':
 					if(this.pwd == '') {
 						this.legal.pwd = false;
-						console.log('密码不能为空')
+						this.notice.pwd = '密码不能为空';
 					} else {
 						this.legal.pwd = true;
+						this.notice.pwd = null;
 					}
 					break;
 				case 'rpwd':
 					if(this.pwd !== this.rpwd) {
 						this.legal.rpwd = false;
-						console.log('两次密码不一致')
+						this.notice.rpwd = '两次密码不一致';
 					} else {
 						this.legal.rpwd = true;
+						this.notice.rpwd = null;
 					}
 					break;
 			}
@@ -206,6 +226,56 @@ export default {
 				this.regBtnDisable = true;
 			}
 		},
+		logInputBlur(type) {
+			switch(type){
+				case 'email':
+					if(this.email == '') {
+						this.logLegal.email = false;
+						this.logNotice.email = '邮箱不能为空';
+					} else {
+						var reg = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/; 
+						if(reg.test(this.email)) {
+							var _this = this;
+					  		$.ajax({
+					            url: "/api/user/checkEmail",
+					            type: "get",
+					            data: {inputEmail: _this.email},
+					            success: function(data){
+				            		if(data.occupy) {
+				            			_this.logNotice.email = null;
+				            			_this.logLegal.email = true;
+				            			console.log(data.occupy)
+				            		} else {
+				            			_this.logNotice.email = '邮箱不存在';
+				            			_this.logLegal.email = false;
+				            		}
+					            },
+					            error: function(error) {
+					            	console.log("获取资源失败");
+					            }
+					        });
+						} else {
+							this.logNotice.email = '邮箱格式错误';
+							this.logLegal.email = false;
+						}
+					}
+					break;
+				case 'pwd':
+					if(this.pwd == '') {
+						this.logLegal.pwd = false;
+						this.logNotice.pwd = '密码不能为空';
+					} else {
+						this.logLegal.pwd = true;
+						this.logNotice.pwd = null;
+					}
+					break;
+				}
+				if(this.logLegal.email && this.logLegal.pwd) {
+					this.logBtnDisable = false;
+				} else {
+					this.logBtnDisable = true;
+				}
+		},
 		register() {
 	      	this.$http.post('/api/user/register', {
 		        username: this.username,
@@ -213,7 +283,9 @@ export default {
 		        pwd: this.pwd
 		    },{}).then((response) => {
 				$('.close').click();
-				this.myFun.showMsg('注册成功');
+				this.myFun.showMsg('注册成功', 1);
+				this.email = '';
+				this.pwd = '';
 		    })
 		    .catch(function(response) {
 		        console.log("出现异常");
@@ -227,14 +299,11 @@ export default {
 					this.childMsg.isExit = false;
 		            this.childMsg.username = response.body.userName;
 		            this.childMsg.userimg = response.body.imgSrc;
-		            // this.username = response.body.userName;
-		            // this.userid = response.body.userId;
-
 		            this.$store.commit('setUser', response.body);
                 	this.$store.commit('setUserImg', response.body.imgSrc);
 		            this.$store.commit('setToken', response.body.token);
 					$('.close').click();
-					this.myFun.showMsg('登录成功');
+					this.myFun.showMsg('登录成功', 1);
 				    this.$router.go(0);
 		        
 
@@ -291,6 +360,18 @@ export default {
 
 .modal-body {
 	min-height: 250px;
+	.notice {
+		color: rgba(240, 27, 45, 0.9);
+		font-size: 0.6rem;
+		position: relative;
+		right: 5%;
+		top: 3px;
+	}
+	.check {
+		background-image: url(../assets/img/check.png);
+		margin: 0;
+		margin-right: 10%;
+	}
 }
 
 .forget-box {

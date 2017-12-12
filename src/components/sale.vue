@@ -70,7 +70,6 @@ export default {
                 	}
               	}
               	this.orderItem = orderCopy;
-              	// console.log(this.orderItem)
 		    })
 		    .catch(function(response) {
 		        console.log("异常");

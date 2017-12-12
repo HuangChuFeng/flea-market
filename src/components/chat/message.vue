@@ -5,15 +5,13 @@
 		<!-- 联系人列表 -->
 		<div class="connect-list">
 			<p>联系人<i class="icon contacts"></i></p>
-			<ul v-if="seller.length != 0">
+			<ul>
 				<li v-for="(item, index) in seller" @click='selectContacts(item.contactsName, index)'
 				:class="{'current': currentIndex == index }">{{item.contactsName}}
 				<span :class="{'new-msg': newMsgsender.length != 0 &&newMsgsender.indexOf(item.contactsName) >= 0}"></span>
 				<span v-if = "unRead[item.contactsName]" class='unread-msg'>{{unRead[item.contactsName]}}</span>
-				<!-- <span class="unread-msg" v-if = "unRead[item.contactsName] && currentIndex != index">{{unRead[item.contactsName]}}</span> -->
 				</li>
 			</ul>
-			<p v-else>您还没有联系人</p>
 		</div>
 	</div>
     
@@ -53,7 +51,6 @@ export default {
         }
     },
     mounted: function() {
-    	// console.log(this.$store.state.unRead);
     	this.getContacts();
     },
     methods: {
@@ -95,18 +92,18 @@ export default {
 			} else {  //没有路由参数
 		        if(this.seller.length != 0) {   //历史联系人不为空
 					this.toChatMsg.sellerInfo.name = this.seller[0].contactsName;
-					// this.selectContacts(this.seller[0].contactsName)
 					this.selectContacts(this.toChatMsg.sellerInfo.name, 0)
 		        }
 			}
 			//传来未读消息
 			if(this.$route.query.unread) {
 				var unReadObj = this.$store.state.unRead;
-				// console.log(this.seller)
 				for(var key in unReadObj) {
-					if(this.seller[0].contactsName != key){  //如果不是第一个则加标志
+					//如果不是第一个则加标志
+					if(this.seller[0].contactsName != key){  
 						this.unRead[key] = unReadObj[key];
-					} else {  //是第一个自动发请求置消息为已读
+					} else {  
+						//是第一个自动发请求置消息为已读
 						console.log('key:'+key)
 						// console.log(unReadObj[key]);
 						this.setRead(key, unReadObj[key])
@@ -146,8 +143,15 @@ export default {
 	            success: function(data){
 	            	var sum = parseInt($('#unreadCount').text());
 	            	subtractor = parseInt(subtractor);
-	            	var surplus = sum - subtractor;
-	              	$('#unreadCount').text(surplus);
+	            	if(sum > 0) {
+	            		var surplus = sum - subtractor;
+	            		if(surplus == 0){
+	            			$('#unreadCount').text('');
+	            		}
+	              		$('#unreadCount').text(surplus);
+	            	} else {
+	              		$('#unreadCount').text('');
+	            	}
     				delete _this.unRead[contactsName];
 	            },
 	            error: function(error) {
@@ -166,14 +170,20 @@ export default {
 	padding-top: 0;
 	margin: 20px 10%;
 	min-width: 37.5rem;
-	overflow: hidden;
+	overflow: auto;
 	border-radius: 10px;
 	background: rgba(255, 255, 255, 0.4);
 	-webkit-box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
     -moz-box-shadow: 0 0 8px rgba(0, 0, 0, 0.5); 
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
 }
-
+@media screen and (max-width:600px){
+  .mywrap {
+    margin:0;
+  }
+  .connect-list {
+  }
+}  
 .connect-list {
 	width: 30%;
 	height: 37.5rem;

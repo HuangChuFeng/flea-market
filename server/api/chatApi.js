@@ -1,9 +1,6 @@
 var express = require('express');
 const app = express();
 
-var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart({uploadDir:'../static/public/uploads/' });
-
 var router = express.Router();
 
 var config = require('../config');
@@ -11,6 +8,8 @@ const fs = require('fs');
 const path = require('path');
 
 
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart({uploadDir:'../static/public/chatRecord/' });
 // 连接数据库
 var models = require('../database');
 var mysql = require('mysql');
@@ -60,7 +59,7 @@ router.get('/getChatRecord', (req, res) => {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
 			//获取用户和当前聊天对象的聊天记录(用户发出的和收到的)
-			var sql = "select fromName, toName, content, createdTime, status from message, user, contacts where\
+			var sql = "select fromName, toName, content, createdTime, type, status from message, user, contacts where\
 			 user.id = ? and ((contacts.userName = user.userName and contacts.contactsName = ?)\
 			 or (contacts.userName = ? and contacts.contactsName = user.userName)) and\
 			  contacts.id = message.belong";
@@ -125,4 +124,18 @@ router.post('/setRead', (req, res) => {
 		}
 	}
 });
+
+//发送图片
+router.post('/sendMsg', multipartMiddleware, async (req, res)=> {
+    let params = req.body;
+    var token = params.token;
+    var oldPath = req.files['imgMsg'].path;
+    var types = req.files['imgMsg'].name.split('.');
+    var newPath = '../static/public/chatRecord/' + Date.now() + "." + String(types[types.length - 1]);
+    if (fs.existsSync(newPath)) {
+        newPath = '../static/public/chatRecord/' + Date.now() + "." + String(types[types.length - 1]);
+    }
+    fs.renameSync(oldPath,newPath); 
+   	res.json({msgPath: newPath});
+})
 module.exports = router;

@@ -15,12 +15,15 @@
 						</div>
 						<div class="img-cover">
 							<div class="operate">
-								<i class="edit icon" @click='modify(item.id)'></i>
-								<i class="del icon" @click="del(item.id, item.title)"></i>
-							</div>
+                <div v-if="item.status == 1">
+  								<i class="edit icon" @click='modify(item.id)'></i>
+  								<i class="del icon" @click="del(item.id, item.title)"></i>
+  							</div>
+                <div v-else>已卖出</div>
+              </div>
 						</div>
 						<p class="title">
-						<router-link :to="{path:'/index/detail',query: {id: item.id, isCollect: false}}">{{item.title}}</router-link>
+						<router-link :to="{path:'/index/detail',query: {id: item.id, isCollect: false}}" v-if="item.status == 1">{{item.title}}</router-link><i v-else>{{item.title}}</i>
 						<span>{{item.level}} 成新</span></p>
 						<p class="price">￥ {{item.price}}</p>
 				</div>

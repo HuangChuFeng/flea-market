@@ -14,6 +14,43 @@ var mysql = require('mysql');
 var conn = mysql.createConnection(models.mysql);
 conn.connect();
 
+
+// 每隔一天轮询订单数据表，如果存在订单超过一天未付款，则删除该订单
+setInterval(function() {
+	checkNoPayOrder();
+}, 24 * 3600 * 1000)
+
+function checkNoPayOrder() {
+	var sql = "select * from orders";
+	conn.query(sql, [], function(err, result) {
+		if (err) {
+			console.log("错误："+err);
+			res.json('数据库查询失败');
+		}
+		if (result) {
+			for (let i = 0; i < result.length; i++) {
+				if(result[i].status == 0) {
+					if(Date.now() - new Date(result[i].time) > 24 * 3600 * 1000) {
+						console.log('订单'+result[i].id+'已超过一天未付款');
+						var sql = "delete from orders where id = ?";
+						conn.query(sql, [result[i].id], function(err, result) {
+							if (err) {
+								console.log("错误："+err);
+								res.json('数据库删除失败');
+							}
+							if (result) {
+								console.log('删除超时订单成功！')
+							}
+						});
+					}
+				}
+			}
+		}
+	});
+}
+
+
+
 //发布商品
 router.post('/publish', multipartMiddleware, async (req, res)=> {
     let params = req.body;
@@ -97,7 +134,7 @@ router.get('/getItems', (req, res) => {
 	var params = req.query, sql;
 	var token = req.headers['token'];
 	if(params.getAll) {      //获取全部商品
-		sql = "select id, title, imgPath, level, price from items where status = ?";
+		sql = "select id, title, imgPath, level, price, type from items where status = ?";
 		conn.query(sql, [1], function(err, result) {
 			if (err) {
 				console.log("错误："+err);
@@ -143,7 +180,7 @@ router.get('/getItems', (req, res) => {
 				token = config.checkToken(token).tokenData;
 				var userId = token.iss;
 				if(params.getPublish) {
-					sql = "select id, title, imgPath, level, price from items where sellerId = ?";
+					sql = "select id, title, imgPath, level, status, price from items where sellerId = ?";
 					conn.query(sql, [userId], function(err, result) {
 						if (err) {
 							console.log("错误："+err);
@@ -171,7 +208,6 @@ router.get('/getItems', (req, res) => {
 							console.log("错误："+err);
 						}
 						if (result) {
-							console.log(result)
 							res.json(result);
 						}
 					});
@@ -352,14 +388,36 @@ router.post('/buy', (req, res) => {
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
-			var sql = "insert into orders (itemId, sellerId, buyerId) values (?, ?, ?)";
-			conn.query(sql, [params.itemId, params.sellerId, userId], function(err, result) {
+			var sql = "select itemId from orders where status != ?";
+			conn.query(sql, [2], function(err, result) {
 				if (err) {
 					console.log("错误："+err);
-					res.json('数据库更新失败');
+					res.json('数据库查询失败');
 				}
 				if (result) {
-					res.json({msg: 200});
+					console.log(result);
+					//查看未付款订单表中有没有该商品
+					var flag = false;
+					for (var i = 0; i < result.length; i++) {
+						if(result[i].itemId == params.itemId) {
+							flag = true;
+							break;
+						}
+					}
+					if(flag) {
+						res.json({exist: flag})
+					} else {
+						var sql = "insert into orders (itemId, sellerId, buyerId) values (?, ?, ?)";
+						conn.query(sql, [params.itemId, params.sellerId, userId], function(err, result) {
+							if (err) {
+								console.log("错误："+err);
+								res.json('数据库更新失败');
+							}
+							if (result) {
+								res.json({msg: 200});
+							}
+						});
+					}
 				}
 			});
 		}
@@ -415,5 +473,23 @@ router.post('/intoAccount', (req, res) => {
 			});
 		}
 	}
+});
+
+
+
+//获取搜索结果
+router.get('/search', (req, res) => {
+	var params = req.query;
+	var sql = "select id, title, imgPath, level, price, type from items where title like\
+	 '%"+params.key+"%' or description like '%"+params.key+"%'";
+	conn.query(sql, [], function(err, result) {
+		if (err) {
+			console.log("错误："+err);
+			res.json('数据库更新失败');
+		}
+		if (result) {
+			res.json({items: result});
+		}
+	});
 });
 module.exports = router;

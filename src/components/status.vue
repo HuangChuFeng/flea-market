@@ -32,9 +32,11 @@
 						<span></span><span></span>
 					</div>
 					<div class="btn-box">
+						<p class="notice-msg" v-if="order.status == 0">若超过24小时未付款，订单将自动取消</p>
 						<div  v-if="order.status == 0">
+							<button class="btn btn-submit"  v-if="noAccount" @click='pay'>已线下完成付款</button>
 							<button class="btn btn-submit"  v-if="account != null" @click='pay'>我已付款</button>
-							<button class="btn btn-cancel" v-else @click='getAccount'>去付款</button>
+							<button class="btn btn-cancel" v-if="this.$route.path == '\/items\/buyin' && account == null && !noAccount" @click='getAccount'>去付款</button>
 						</div>
 						<button class="btn btn-submit" v-if="order.status == 1 && this.$route.path == '\/items\/sale'" @click='intoAccount'>确认到账</button>
 					</div>
@@ -55,6 +57,7 @@ export default {
     	return {
 	    	account: null,   //卖家支付帐号
 	    	sellerName: null,  //卖家姓名
+	    	noAccount: false  //卖家有无支付帐号，有则可选择线上或线下付款，无则之恩那个线下付款
     	}
 	},
 	watch: {
@@ -78,6 +81,10 @@ export default {
               	console.log(response.body)
               	this.account = response.body[0].account;
               	this.sellerName = response.body[0].userName;
+              	if(this.account == null) {
+              		$('#paybtn').text('已线下完成付款')
+              		this.noAccount = true;
+              	}
 		    })
 		    .catch(function(response) {
 		        console.log("异常");
@@ -154,6 +161,11 @@ export default {
 		bottom: 4rem;
 		background: #20af89;
 	}
+}
+.notice-msg {
+	font-size: 0.7rem;
+	margin-bottom: 30px;
+	color: rgba(240, 27, 45, 0.9);
 }
 .account-info {
 	padding: 10px;
