@@ -60,9 +60,9 @@ router.get('/getChatRecord', (req, res) => {
 			var userId = token.iss;
 			//获取用户和当前聊天对象的聊天记录(用户发出的和收到的)
 			var sql = "select fromName, toName, content, createdTime, type, status from message, user, contacts where\
-			 user.id = ? and ((contacts.userName = user.userName and contacts.contactsName = ?)\
-			 or (contacts.userName = ? and contacts.contactsName = user.userName)) and\
-			  contacts.id = message.belong";
+			user.id = ? and ((contacts.userName = user.userName and contacts.contactsName = ?)\
+			or (contacts.userName = ? and contacts.contactsName = user.userName)) and\
+			contacts.id = message.belong";
 			conn.query(sql, [userId, params.contactsName, params.contactsName], function(err, result) {
 				if (err) {
 					console.log("错误："+err);
@@ -86,7 +86,7 @@ router.get('/getUnreadMsg', (req, res) => {
 			var userId = token.iss;
 			//获取用户和当前聊天对象的聊天记录(用户发出的和收到的)
 			var sql = "select fromName, COUNT(fromName) from message, user where user.id = ? and\
-			 message.toName = user.userName and status = ? GROUP BY(fromName)";
+			message.toName = user.userName and status = ? GROUP BY(fromName)";
 			conn.query(sql, [userId, 0], function(err, result) {
 				if (err) {
 					console.log("错误："+err);
@@ -103,7 +103,6 @@ router.get('/getUnreadMsg', (req, res) => {
 //把消息置为已读
 router.post('/setRead', (req, res) => {
 	var params = req.body;
-	console.log(params)
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
@@ -127,15 +126,15 @@ router.post('/setRead', (req, res) => {
 
 //发送图片
 router.post('/sendMsg', multipartMiddleware, async (req, res)=> {
-    let params = req.body;
-    var token = params.token;
-    var oldPath = req.files['imgMsg'].path;
-    var types = req.files['imgMsg'].name.split('.');
-    var newPath = '../static/public/chatRecord/' + Date.now() + "." + String(types[types.length - 1]);
-    if (fs.existsSync(newPath)) {
-        newPath = '../static/public/chatRecord/' + Date.now() + "." + String(types[types.length - 1]);
-    }
-    fs.renameSync(oldPath,newPath); 
-   	res.json({msgPath: newPath});
+	let params = req.body;
+	var token = params.token;
+	var oldPath = req.files['imgMsg'].path;
+	var types = req.files['imgMsg'].name.split('.');
+	var newPath = '../static/public/chatRecord/' + Date.now() + "." + String(types[types.length - 1]);
+	if (fs.existsSync(newPath)) {
+		newPath = '../static/public/chatRecord/' + Date.now() + "." + String(types[types.length - 1]);
+	}
+	fs.renameSync(oldPath,newPath); 
+	res.json({msgPath: newPath});
 })
 module.exports = router;

@@ -1,6 +1,6 @@
 <template>
   <div>
-   <div class="nav">
+   <div class="nav" @click="hiddenMenu">
     <div class="portrait">
       <div class="img">
         <img :src="toChildMsg.imgSrc" id="nav_portrait" />
@@ -74,7 +74,6 @@
   methods: {
     parentMsgChange(val) {
       this.toChildMsg = val;
-      console.log(this.toChildMsg)
     },
     setUserName() {
       this.username = this.$store.state.UserName;
@@ -85,8 +84,9 @@
       if(this.$route.path == '/index') {
         this.$router.go(0);
       } else {
+        this.$router.go(0);
         this.$router.push({
-          path: '/'
+          path: '/index'
         })
       }
     },
@@ -128,6 +128,11 @@
         this.flag = false;
       }
       $('.sub-menu').toggle(500);
+    },
+    hiddenMenu() {
+      if($(window).width() < 960) {
+        $('.nav').slideUp();
+      }
     }
   }
 }
@@ -178,8 +183,6 @@
           }
         }
         .icon {
-          width: 16px;
-          height: 16px;
           margin: 0 6px -10px 0;
         }
         .index {
@@ -234,7 +237,6 @@
     .portrait {
       padding: 0 20px;
       color: #eee;
-      // margin-left: 5px;
       text-align: left;
       .img {
         width: 60px;
@@ -268,24 +270,24 @@
       width: 120%;
     }
   }
-  // .triangle {
-  //   height: 550px;
-  //   width: 170px;
-  //   position: absolute;
-  //   top: 55px;
-  //   left: 100px;
-  //   border: 1px solid blue;
-  //   border-left-: 250px;
-  //   z-index: -1;
-  //   &:before {
-  //     content: '';
-  //     display: block;
-  //     width: 200px;
-  //     height: 500px;
-  //     background: rgba(2, 2, 123, .9);
-  //     position: absolute;
-  //     right: 75px;
-  //     top: -80px;
-  //   }
-  // }
+  @media screen and (max-width: 960px) {
+    .nav {
+      font-size: 0.8rem;
+        ul {
+          margin-top: 0;
+          li {
+            line-height: 25px;
+            &:last-child {
+              padding-left: 25px;
+            }
+          }
+        }
+        .sub-menu li{
+          padding: 2px;
+          &:last-child {
+            margin-left: -18px;
+          }
+        }
+      }
+    }
 </style>

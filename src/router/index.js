@@ -30,9 +30,9 @@ export default new Router({
         component: Items,
         children: [
         { path: '/items/published', component: Published, meta: { requiresAuth: true }},
-        { path: '/items/collect', component: Collect },
-        { path: '/items/buyin', component: BuyIn },
-        { path: '/items/sale', component: Sale },
+        { path: '/items/collect', component: Collect, meta: { requiresAuth: true } },
+        { path: '/items/buyin', component: BuyIn, meta: { requiresAuth: true } },
+        { path: '/items/sale', component: Sale, meta: { requiresAuth: true } },
         ]
     },
     {   path: '/message', 

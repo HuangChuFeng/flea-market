@@ -9,16 +9,16 @@ import './assets/css/bootstrap.min.css'
 import './assets/js/bootstrap.min'
 import './assets/common.less'
 import {myFun} from './assets/common.js'
-// import axios from 'axios'
 import io from 'socket.io-client'
 
+Vue.prototype.myFun = myFun  //引入外部js文件
 
+let token = store.state.Token;
 var UserName = store.state.UserName;
-// global.msg = '来自main.js的新消息';
 
 //建立socket连接
 global.socket = io('http://localhost:3000');
-// if(token) {
+if(token) {
   global.socket.emit('comming in', {
     userName: UserName
   });
@@ -32,8 +32,7 @@ global.socket = io('http://localhost:3000');
       console.log('您有来自'+data.from+'的新消息');
 
   });
-// }
-Vue.prototype.myFun = myFun  //引入外部js文件
+}
 Vue.use(VueResource) 
 //路由拦截，判断目标路由是否需要权限
 router.beforeEach((to, from, next) => {
@@ -52,7 +51,6 @@ router.beforeEach((to, from, next) => {
 })
 
 //全局设置token
-let token = store.state.Token;
 Vue.http.interceptors.push((request, next) => {  
   if(token) {  
     request.headers.set('token',token);

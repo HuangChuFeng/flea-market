@@ -26,9 +26,8 @@ var nodemailer  = require('nodemailer');
 // 用户注册
 router.post('/register', (req, res) => {
 	var params = req.body;
-	console.log(params);
 	// 密码加盐处理
-    const encryptPwd = bcrypt.hashSync(params.pwd, salt)
+	const encryptPwd = bcrypt.hashSync(params.pwd, salt)
 	var sql = "insert into user(userName, pwd, email) values (?, ?, ?)"
 	conn.query(sql, [params.username, encryptPwd, params.email], function(err, result) {
 		if (err) {
@@ -44,7 +43,6 @@ router.post('/register', (req, res) => {
 //验证邮箱是否已占用
 router.get('/checkEmail', (req, res) => {
 	var params = req.query, sql;
-	console.log(params)
 	sql = "select email from user";
 	conn.query(sql, [], function(err, result) {
 		if (err) {
@@ -56,7 +54,7 @@ router.get('/checkEmail', (req, res) => {
 				emailArr.push(result[i].email)
 			}
 			if(emailArr.indexOf(params.inputEmail) >= 0) { //邮箱存在
-					res.json({occupy: true})
+				res.json({occupy: true})
 			} else {  //不存在
 				res.json({occupy: false});
 			}
@@ -68,7 +66,6 @@ router.get('/checkEmail', (req, res) => {
 router.post('/login', (req, res) => {
 	var sql = "select id, imgPath, userName, pwd from user where email = ?";
 	var params = req.body;
-	console.log(params)
 	conn.query(sql, [params.email], function(err, result) {
 		if (err) {
 			res.json('登录失败')
@@ -93,7 +90,7 @@ router.post('/login', (req, res) => {
 				userInfo.token = token;
 				res.json(userInfo);
 			}else{
-				res.json({msg:'密码错误'})
+				res.json({pwdIsWrong: true})
 			}
 		}
 	})
@@ -104,7 +101,6 @@ router.post('/login', (req, res) => {
 router.post('/modifyInfo',  multipartMiddleware, async (req, res)=> {
 	var params = req.body;
 	var token = params.token;
-	console.log(token)
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
 			res.send('Access token has expired', 400)
@@ -112,7 +108,7 @@ router.post('/modifyInfo',  multipartMiddleware, async (req, res)=> {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
 			if(params.newPwd) {   //修改密码
-		    	const newEncryptPwd = bcrypt.hashSync(params.newPwd, salt)
+				const newEncryptPwd = bcrypt.hashSync(params.newPwd, salt)
 				var sql = "update user set pwd = ? where id = ?";
 				conn.query(sql, [newEncryptPwd, userId], function(err, result) {
 					if (err) {
@@ -126,28 +122,28 @@ router.post('/modifyInfo',  multipartMiddleware, async (req, res)=> {
 			}
 			if(req.files){   //更换头像
 				var userUrl = '../static/public/uploads/portrait';
-			    if (!fs.existsSync(userUrl)) {
-			        fs.mkdirSync(userUrl);
-			    }
-			    var oldPath = req.files['newImg'].path;
-		        var types = req.files['newImg'].name.split('.');
-		        var seconds = String(new Date().getSeconds());
-		        var newPath = userUrl+'/user'+userId+"_"+seconds+"."+String(types[types.length-1]);
-		        fs.renameSync(oldPath,newPath); 
+				if (!fs.existsSync(userUrl)) {
+					fs.mkdirSync(userUrl);
+				}
+				var oldPath = req.files['newImg'].path;
+				var types = req.files['newImg'].name.split('.');
+				var seconds = String(new Date().getSeconds());
+				var newPath = userUrl+'/user'+userId+"_"+seconds+"."+String(types[types.length-1]);
+				fs.renameSync(oldPath,newPath); 
 		        if(userId) {   //更新头像路径
-			    	var sql = "update user set imgPath = ? where id = ?";
-					conn.query(sql, [newPath, userId], function(err, result) {
-						if (err) {
-							console.log("错误："+err);
-							res.json('数据库更新失败');
-						}
-						if (result) {
-							console.log(newPath)
-							res.json({'imgSrc': newPath});
-						}
-					})
-			    }
-			}
+		        	var sql = "update user set imgPath = ? where id = ?";
+		        	conn.query(sql, [newPath, userId], function(err, result) {
+		        		if (err) {
+		        			console.log("错误："+err);
+		        			res.json('数据库更新失败');
+		        		}
+		        		if (result) {
+		        			console.log(newPath)
+		        			res.json({'imgSrc': newPath});
+		        		}
+		        	})
+		        }
+		    }
 		}
 	}
 });
@@ -168,8 +164,8 @@ router.get('/echartsInit', (req, res) => {
 				}
 				if (result) {
 					var collectCount = result[0].collect,
-						publishedCount = result[0].publishedCount;
-						option = [];
+					publishedCount = result[0].publishedCount;
+					option = [];
 					if(collectCount != null) {
 						collectCount = collectCount.split('&').length;
 					} else {
@@ -207,8 +203,8 @@ router.get('/echartsInit', (req, res) => {
 //通过发送邮件的方式修改密码
 // 创建一个SMTP客户端配置
 var Emailconfig = {
-        host: 'smtp.qq.com', 
-        port: 25,
+	host: 'smtp.qq.com', 
+	port: 25,
         // secure: true, // 使用SSL方式（安全方式，防止被窃取信息）
         auth: {
             user: '1378894282@qq.com', //刚才注册的邮箱账号
@@ -224,19 +220,19 @@ router.post('/sendEamil', (req, res) => {
 	var params = req.body, resetPwd;
 	resetPwd = Math.random().toString(36).substr(2);
 	var options = {
-        from: '1378894282@qq.com',
-        to: params.email,
-        subject: '重置密码',
-        text: '一封来自Market网站的邮件',
-        html: '<p>'+params.email+'您好, 系统已为你修改了账户密码如下:<h1>'
-        +resetPwd+'</h1><p>请尽快登录并修改密码</p>',
-    }; 
-    transporter.sendMail(options, function(err, msg){
-        if(err){
-            console.log(err);
-        }
-        else {
-            const newEncryptPwd = bcrypt.hashSync(resetPwd, salt)
+		from: '1378894282@qq.com',
+		to: params.email,
+		subject: '重置密码',
+		text: '一封来自Market网站的邮件',
+		html: '<p>'+params.email+'您好, 系统已为你修改了账户密码如下:<h1>'
+		+resetPwd+'</h1><p>请尽快登录并修改密码</p>',
+	}; 
+	transporter.sendMail(options, function(err, msg){
+		if(err){
+			console.log(err);
+		}
+		else {
+			const newEncryptPwd = bcrypt.hashSync(resetPwd, salt)
 			var sql = "update user set pwd = ? where email = ?";
 			conn.query(sql, [newEncryptPwd, params.email], function(err, result) {
 				if (err) {
@@ -247,8 +243,8 @@ router.post('/sendEamil', (req, res) => {
 					res.json({msg: '重置密码成功'})
 				}
 			})
-        }
-    });
+		}
+	});
 });
 
 
@@ -264,7 +260,7 @@ router.get('/getOrders', (req, res) => {
 			var userId = token.iss;
 			if(params.type == 'in') {  //买入
 				var sql = "select orders.id, user.userName as sellerName, orders.sellerId, title, price, orders.status, items.imgPath, time from items, orders, user where\
-				 user.id = orders.sellerId and orders.itemId = items.id and buyerId = ?";
+				user.id = orders.sellerId and orders.itemId = items.id and buyerId = ?";
 				conn.query(sql, [userId], function(err, result) {
 					if (err) {
 						console.log("错误："+err);
@@ -276,7 +272,7 @@ router.get('/getOrders', (req, res) => {
 			}
 			if(params.type == 'out') {  //卖出
 				var sql = "select orders.id, user.userName as buyerName, orders.buyerId, title, price, orders.status, items.imgPath, time from items, orders, user where\
-				 user.id = orders.buyerId and orders.itemId = items.id and orders.sellerId = ?";
+				user.id = orders.buyerId and orders.itemId = items.id and orders.sellerId = ?";
 				conn.query(sql, [userId], function(err, result) {
 					if (err) {
 						console.log("错误："+err);
@@ -295,7 +291,6 @@ router.get('/getOrders', (req, res) => {
 router.post('/insertAccount', (req, res) => {
 	var token = req.headers['token'], params = req.body;
 	var account = params.account;
-	console.log(account)
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
 			res.send('Access token has expired', 400)

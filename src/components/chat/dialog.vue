@@ -2,44 +2,45 @@
 	<div class="dialog">
         <p class="current-contacts">
             <i @click='back' class="icon back"></i>{{toChatMsg.sellerInfo.name}}
+            <i class="icon contacts-icon" @click="showContacts"></i>
         </p>
-		<div class="message-box">
-			<div class="msg-line" v-for="msg in msgArr"
-                v-bind:class="isUserMsg(msg.fromName) ? 'user-msg' : 'contacts-msg'">
-                <div v-if="!isUserMsg(msg.fromName)">
-                    <span class="name">{{msg.fromName}}</span>
-                    <span class="msg-left" v-if="msg.type == 0">{{msg.content}}</span>
-                    <span class="msg-left" v-else>
-                        <div class="img-record"><img :src="msg.content" @click="preview"/>
-                        </div>
-                    </span>
+        <div class="message-box">
+         <div class="msg-line" v-for="msg in msgArr"
+         v-bind:class="isUserMsg(msg.fromName) ? 'user-msg' : 'contacts-msg'">
+         <div v-if="!isUserMsg(msg.fromName)">
+            <span class="name">{{msg.fromName}}</span>
+            <span class="msg-left" v-if="msg.type == 0">{{msg.content}}</span>
+            <span class="msg-left" v-else>
+                <div class="img-record"><img :src="msg.content" @click="preview"/>
                 </div>
-                <p class="time-notice" v-if="msg.overTime">{{msg.overTime}}</p>
-                <div v-if="isUserMsg(msg.fromName)">
-                    <span class="unread" v-if="msg.status == 0">未读</span>
-                    <span class="msg-right" v-if="msg.type == 0">{{msg.content}}</span>
-                    <span class="msg-right" v-else>
-                        <div class="img-record"><img :src="msg.content" @click="preview"/>
-                        </div>
-                    </span>
-                    <span class="name">{{msg.fromName}}</span>
+            </span>
+        </div>
+        <p class="time-notice" v-if="msg.overTime">{{msg.overTime}}</p>
+        <div v-if="isUserMsg(msg.fromName)">
+            <span class="unread" v-if="msg.status == 0">未读</span>
+            <span class="msg-right" v-if="msg.type == 0">{{msg.content}}</span>
+            <span class="msg-right" v-else>
+                <div class="img-record"><img :src="msg.content" @click="preview"/>
                 </div>
-			</div>
-		</div>
-		<div class="send">
-            <div class="input-message">
-                <textarea class="form-control" v-model="inputMsg" @keyup.enter='send'>
-                </textarea>
-                <div class="viewImg" v-show="tempImg != null"><img :src="viewSrc"></div>
-            </div>
-            <div class="btn-wrap">
-                <label class="select-pic icon"><input type="file" name="imgMsg" @change="viewImg"/></label>
-                <div @click='send' class="send-btn">
-                    <i class="send-icon icon"></i>
-                </div>
-            </div>
-		</div>
-	</div>
+            </span>
+            <span class="name">{{msg.fromName}}</span>
+        </div>
+    </div>
+</div>
+<div class="send">
+    <div class="input-message">
+        <textarea class="form-control" v-model="inputMsg" @keyup.enter='send'>
+        </textarea>
+        <div class="viewImg" v-show="tempImg != null"><img :src="viewSrc"></div>
+    </div>
+    <div class="btn-wrap">
+        <label class="select-pic icon"><input type="file" name="imgMsg" @change="viewImg"/></label>
+        <div @click='send' class="send-btn">
+            <i class="send-icon icon"></i>
+        </div>
+    </div>
+</div>
+</div>
 </template>
 
 <script>
@@ -47,8 +48,8 @@
 export default {
 	props: ["toChatMsg"],
 	data () {
-    	return {
-    		socket: null,
+       return {
+          socket: null,
     		inputMsg: null,    //输入消息
     		userName: this.$store.state.UserName,
             msgArr: [], 
@@ -56,14 +57,11 @@ export default {
             tempImg: null,
             vm: this,
             
-    	}
+        }
     },
     computed: {
     },
     watch: {
-        msgArr(val) {
-            //让滚动条始终置于底部
-        },
         'msgArr': {
             handler:(val,oldVal)=>{
             },
@@ -140,8 +138,8 @@ export default {
         },
         send() {
             var from = this.userName,
-                to = this.toChatMsg.sellerInfo.name,
-                msg, type;
+            to = this.toChatMsg.sellerInfo.name,
+            msg, type;
             if(to) {
                 //消息类型为图片
                 if(this.tempImg != null) {
@@ -159,36 +157,36 @@ export default {
                         cache: false,
                         success: function(data){
                             msg = { content: data.msgPath,
-                                    type: 1};
-                            global.socket.emit('private message', from , to, msg);
-                            _this.msgArr.push({
-                                content: msg.content,
-                                fromName: _this.userName,
-                                type: 1
-                            })
-                            _this.tempImg = null;
-                        },
-                        error: function(error) {
-                            _this.myFun.tokenExpired(error)
-                            console.log("发布失败");
-                        }
-                    })  
+                                type: 1};
+                                global.socket.emit('private message', from , to, msg);
+                                _this.msgArr.push({
+                                    content: msg.content,
+                                    fromName: _this.userName,
+                                    type: 1
+                                })
+                                _this.tempImg = null;
+                            },
+                            error: function(error) {
+                                _this.myFun.tokenExpired(error)
+                                console.log("发布失败");
+                            }
+                        })  
 
                 } else {  //消息类型为文字
                     msg = { content: this.inputMsg,
-                            type: 0};
-                    global.socket.emit('private message', from , to, msg);
-                    this.inputMsg = null;
-                    this.msgArr.push({
-                        content: msg.content,
-                        fromName: this.userName,
-                        type: 0
-                    })
+                        type: 0};
+                        global.socket.emit('private message', from , to, msg);
+                        this.inputMsg = null;
+                        this.msgArr.push({
+                            content: msg.content,
+                            fromName: this.userName,
+                            type: 0
+                        })
+                    }
+                } else {
+                    this.myFun.showMsg('您还没有联系人', 0)
                 }
-            } else {
-                this.myFun.showMsg('您还没有联系人', 0)
-            }
-        },
+            },
         //获取用户与某个联系人的聊天记录
         getChatRecord(contactsName, oldName) {
             // console.log(oldName+'切换为：'+contactsName);
@@ -228,148 +226,170 @@ export default {
             $('#bigImg img').attr('src', e.target.src)
             $('#bigImg').fadeIn();
             $('#bigImg img').css('animation', 'enlarge 1s')
+        },
+        //移动端显示联系人
+        showContacts() {
+            if($('.connect-list').css('right') < '0') {
+                $('.connect-list').animate({'right': '0'}, 500)
+                $('.contacts-icon').css('transform', 'rotate(-90deg)')
+            } else {
+                $('.connect-list').animate({'right': '-200px'}, 500)
+                $('.contacts-icon').css('transform', 'rotate(90deg)')
+            }
         }
     }
 }
 </script>
 <style lang='less'>
-.dialog {
-    width: 70%;
-    height: 38.125rem;
-    float: left;
-    .current-contacts {
-        line-height: 3.125rem;
-        margin: 0;
-        color: #fff;
-        background:  rgba(0, 0, 0, 0.7);
-        .back {
-            position: relative;
-            float: left;
-            top: 0.3125rem;
-            left: 0.3125rem;
-            background-size: 100% 100%;
-        }
-    }
-    .message-box {
-        height: 65%;
-        width: 100%;
-        padding: 0 1.875rem 0.625rem 1.875rem;
-        overflow-y: scroll;
-        border-bottom: 1px solid #fff;
-        margin-bottom: 0.625rem;
-        &::-webkit-scrollbar {  
-            width: 0.375rem;  
-            height: 0.375rem;  
-            background-color: #eee;  
-        }
-        /*定义滑块 内阴影+圆角*/  
-        &::-webkit-scrollbar-thumb {  
-            border-radius: 0.375rem;  
-            -webkit-box-shadow: 0 0 6px rgba(255,255,255,.3);  
-            background-color: #ccc;  
-        }  
-        /*滑块效果*/
-        &::-webkit-scrollbar-thumb:hover {
-            border-radius: 5px;
-            -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
-            background: rgba(0,0,0,0.4);
-        }
-        .msg-line {
-            width: 100%;
-            .unread {
-                color: #333;
-                margin-right: 10px;
-            }
-            .msg-left, .msg-right {
-                min-height: 2.125rem;
-                color: #fff;
-                min-width: 9.375rem;
-                max-width: 18.75rem;
-                line-height: 1.5625rem;
-                padding: 0.3125rem 0.9375rem;
+    .dialog {
+        width: 70%;
+        height: 38.125rem;
+        float: left;
+        .current-contacts {
+            line-height: 41px;
+            margin: 0;
+            color: #fff;
+            background:  rgba(0, 0, 0, 0.7);
+            .back {
                 position: relative;
-                margin: 0.9375rem auto 0;
-                border-radius: 0.4375rem;
-                display: inline-block;
-                &:after {
-                    content: '';
-                    width: 0;
-                    height: 0;
-                    position: absolute;
-                    top: 6px;
-                    border: solid 10px;
-                    font-size: 0;
+                float: left;
+                top: 0.3125rem;
+                left: 0.3125rem;
+                background-size: 100% 100%;
+            }
+            .contacts-icon {
+                float: right;
+                max-width: 29px;
+                max-height: 16px;
+                background-size: 80% 80%;
+                background-position: center center;
+                position: relative;
+                top: 10px;
+                right: 5px;
+                display: none;
+                transform: rotate(90deg)
+            }
+        }
+        .message-box {
+            height: 65%;
+            width: 100%;
+            padding: 0 1.875rem 0.625rem 1.875rem;
+            overflow-y: scroll;
+            border-bottom: 1px solid #fff;
+            margin-bottom: 0.625rem;
+            &::-webkit-scrollbar {  
+                width: 0.375rem;  
+                height: 0.375rem;  
+                background-color: #eee;  
+            }
+            /*定义滑块 内阴影+圆角*/  
+            &::-webkit-scrollbar-thumb {  
+                border-radius: 0.375rem;  
+                -webkit-box-shadow: 0 0 6px rgba(255,255,255,.3);  
+                background-color: #ccc;  
+            }  
+            /*滑块效果*/
+            &::-webkit-scrollbar-thumb:hover {
+                border-radius: 5px;
+                -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+                background: rgba(0,0,0,0.4);
+            }
+            .msg-line {
+                width: 100%;
+                .unread {
+                    color: #333;
+                    margin-right: 10px;
                 }
-                .name {
-                    display: inline-block;
+                .msg-left, .msg-right {
+                    min-height: 2.125rem;
+                    color: #fff;
+                    min-width: 9.375rem;
+                    max-width: 18.75rem;
+                    line-height: 1.5625rem;
+                    padding: 0.3125rem 0.9375rem;
                     position: relative;
-                    line-height: 100%;
-                }
-                .img-record {
-                    max-width: 11rem;
-                    height: auto;
+                    margin: 0.9375rem auto 0;
+                    border-radius: 0.4375rem;
                     display: inline-block;
-                    img {
-                        max-width: 100%;
-                        max-height: 100%;
-                        &:hover {
-                            cursor: pointer;
+                    &:after {
+                        content: '';
+                        width: 0;
+                        height: 0;
+                        position: absolute;
+                        top: 6px;
+                        border: solid 10px;
+                        font-size: 0;
+                    }
+                    .name {
+                        display: inline-block;
+                        position: relative;
+                        line-height: 100%;
+                    }
+                    .img-record {
+                        max-width: 11rem;
+                        height: auto;
+                        display: inline-block;
+                        img {
+                            max-width: 100%;
+                            max-height: 100%;
+                            &:hover {
+                                cursor: pointer;
+                            }
                         }
                     }
                 }
-            }
-            .msg-right {
-                background: rgba(0, 0, 0, 0.7);
-                &:after {
-                    right: -16px;
-                    border-color: transparent transparent transparent rgba(0, 0, 0, 0.7);
+                .msg-right {
+                    background: rgba(0, 0, 0, 0.7);
+                    &:after {
+                        right: -16px;
+                        border-color: transparent transparent transparent rgba(0, 0, 0, 0.7);
+                    }
+                }
+                .msg-left {
+                    background: rgba(8, 7, 177, .9);
+                    &:after {
+                        left: -16px;
+                        border-color:  transparent rgba(8, 7, 177, .9) transparent transparent;
+                    }
+                }
+                span {
+                    display: inline-block;
                 }
             }
-            .msg-left {
-                background: rgba(8, 7, 177, .9);
-                &:after {
-                    left: -16px;
-                    border-color:  transparent rgba(8, 7, 177, .9) transparent transparent;
-                }
-            }
+        }
+        .user-msg {
+            text-align: right;
             span {
-                display: inline-block;
+                margin-left: 20px;
             }
         }
-    }
-    .user-msg {
-        text-align: right;
-        span {
-            margin-left: 20px;
+        .contacts-msg {
+            text-align: left;
+            span {
+                margin-right: 1.25rem;
+            }
         }
-    }
-    .contacts-msg {
-        text-align: left;
-        span {
-            margin-right: 1.25rem;
+        .time-notice {
+            text-align: center;
+            color: #fff;
+            font-size: 0.8rem;
+            margin-top: 2rem;
         }
-    }
-    .time-notice {
-        text-align: center;
-        color: #fff;
-        font-size: 0.8rem;
-        margin-top: 2rem;
-    }
-    .send {
-        height: 25%;
-        width: 100%;
-        position: relative;
-        padding: 0 0 0.9375rem 0.9375rem;
-        .input-message {
-            width: 85%;
-            height: 90%;
-            float: left;
-            color: #000;
-            textarea {
-                background: rgba(255, 255, 255, 0.7);
-                width: 100%;
-                height: 100%;
-                position: relative;
+        .send {
+            height: 25%;
+            width: 100%;
+            position: relative;
+            padding: 0 0 0.9375rem 0.9375rem;
+            .input-message {
+                width: 85%;
+                height: 90%;
+                float: left;
+                color: #000;
+                textarea {
+                    background: rgba(255, 255, 255, 0.7);
+                    width: 100%;
+                    height: 100%;
+                    position: relative;
                 // bottom: 70%;
                 z-index: 2;
             }
@@ -381,7 +401,7 @@ export default {
                 top: 1rem;
                 left: 2rem;
                 float: left;
-                z-index: 3;
+                z-index: 7;
                 img {
                     max-width: 100%;
                     max-height: 100%;
@@ -402,18 +422,27 @@ export default {
                 width: 2.5rem;
             }
             .send-icon {
-               position: relative;
-               top: 0.1875rem;
-            }
-        }
-    }
+             position: relative;
+             top: 0.1875rem;
+         }
+     }
+ }
 }
 @media screen and (max-width:600px){
   .dialog {
+    float: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
     .message-box {
+        height: 75%;
+    }
+    .current-contacts .contacts-icon {
+        display: block;
     }
     .send {
+        height: 15%;
     }
-  }
+}
 }  
 </style>

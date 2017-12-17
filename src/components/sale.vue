@@ -23,30 +23,30 @@
 </template>
 
 <script>
-import Status from '@/components/status'
-export default {
-	components: { 
-	    Status
-	},
-  	data () {
-    	return {
-	    	orderItem: [],
-	    	order: {
-	    		id: null,
+	import Status from '@/components/status'
+	export default {
+		components: { 
+			Status
+		},
+		data () {
+			return {
+				orderItem: [],
+				order: {
+					id: null,
 	    		status: null,   //订单状态
 	    	}
-    	}
+	    }
 	},
 	watch: {
 		'order': {
-            handler:(val,oldVal)=>{
-            	this.order = val;
-            },
-            deep:true
-        }
+			handler:(val,oldVal)=>{
+				this.order = val;
+			},
+			deep:true
+		}
 	},
 	mounted: function() {
-  		this.getOrders();
+		this.getOrders();
 	},
 	methods: {
 		getOrders() {
@@ -54,26 +54,26 @@ export default {
 				params: {
 					type: 'out'
 				}
-		    },{}).then((response) => {
+			},{}).then((response) => {
 				var orderCopy = response.body;
-              	for (var i = 0; i < orderCopy.length; i++) {
-                	var src = orderCopy[i].imgPath.split('&')[0].substring(1);
-                	for (var key in orderCopy[i]) {
-	                    if(key == 'imgPath') {
-	                    	orderCopy[i][key] = src;
-	                    }
-	                    if(key == 'time') {
-	                    	var time = orderCopy[i][key].replace(/T/, '\/');
-	                    	time = time.split('.')[0];
-	                    	orderCopy[i][key] = time
-	                    }
-                	}
-              	}
-              	this.orderItem = orderCopy;
-		    })
-		    .catch(function(response) {
-		        console.log("异常");
-		    })
+				for (var i = 0; i < orderCopy.length; i++) {
+					var src = orderCopy[i].imgPath.split('&')[0].substring(1);
+					for (var key in orderCopy[i]) {
+						if(key == 'imgPath') {
+							orderCopy[i][key] = src;
+						}
+						if(key == 'time') {
+							var time = orderCopy[i][key].replace(/T/, '\/');
+							time = time.split('.')[0];
+							orderCopy[i][key] = time
+						}
+					}
+				}
+				this.orderItem = orderCopy;
+			})
+			.catch(function(response) {
+				console.log("异常");
+			})
 		},
 		statusView(status, id) {
 			this.order.status = status;
@@ -82,7 +82,7 @@ export default {
 		statusChange(val) {
 			console.log('来自子组件：'+val)
 			this.order = val;
-            this.getOrders();
+			this.getOrders();
 
 		}
 	}

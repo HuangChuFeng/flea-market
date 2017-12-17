@@ -1,7 +1,5 @@
 <template>
   <div id="app">
-    <!-- <div class="startImg"> -->
-    <!-- </div> -->
     <div class="mybody">
       <Navbar></Navbar>
       <div id="msg">
@@ -13,9 +11,8 @@
       <div id="bigImg" @click="hiddenBigImg"><img src=""></div>
       <div class="back-top icon" id="backtopbtn" @click="backTop"></div>
       <div class="content">
-      <div class="small-menu"></div>
+      <div class="small-menu" @click="showMenu"></div>
         <router-view/>
-        <!-- <footer>FROM 黄初凤</footer> -->
       </div>
     </div>
   </div>
@@ -60,10 +57,12 @@ export default {
         }
       }, 30)
     },
-    
     hiddenBigImg() {
       $('#bigImg img').css('animation', 'shrink .5s')
       $('#bigImg').fadeOut();
+    },
+    showMenu() {
+      $('.nav').slideDown();
     }
   }
 }
@@ -85,7 +84,7 @@ export default {
   // margin-top: 100%;
 }
 body {
-  background-image: url(./assets/img/background.jpg);
+  background-image: url(./assets/img/bg3.jpg);
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -111,7 +110,7 @@ html{font-size: 16px;}
   background: #333;
 }
 .content {
-  background: rgba(22, 22, 22, 0.7);
+  // background: rgba(22, 22, 22, 0.7);
   padding: 1.25rem;
   color: #000;
   margin-left: 18.75rem;
@@ -121,18 +120,31 @@ html{font-size: 16px;}
     color: rgba(240, 27, 45, 0.9);
   }
   .small-menu {
-    position: absolute;
-    width: 3rem;
-    height: 3rem;
-    background: blue;
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    min-width: 30px;
+    min-height: 30px;
+    background: #333;
     top: 3px;
     left: 3px;
     display: none;
+    background-image: url(./assets/img/menu.png);
+    background-repeat: no-repeat;
+    background-position: center center;
   }
 }
 @media screen and (max-width: 960px) {
     .nav {
         display: none;
+        z-index: 4;
+        height: 50%;
+        width: 14rem;
+        padding: 0; 
+        top: 0;
+        i, .portrait {
+          display: none;
+        }
     }
     .content {
       margin-left: 0;
@@ -141,9 +153,6 @@ html{font-size: 16px;}
         display: block;
       }
     }
-    .search {
-      // overflow: hidden;
-    }
 }
 @media screen and (max-width:600px){
   html {
@@ -151,23 +160,8 @@ html{font-size: 16px;}
   }
   .content {
     padding: 0; 
+    padding-top: 20px;
   }
-  .mywrap {
-    height: 100%;
-    background: red;
-    margin:0;
-  }
-}  
-footer {
-  position: relative;
-  margin-top: 6.25rem;
-  bottom: -1.25rem;
-  left: -1.25rem;
-  width: 110%;
-  height: 2.5rem;
-  line-height: 2.5rem;
-  color: #fff;
-  background-color: #e3574b;
 }
 #bigImg {
   position: fixed;

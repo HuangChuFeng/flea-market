@@ -6,17 +6,17 @@
 		<div class="info-box">
 			<div class="op-box"> 
 				<div class="operate-box">
-					<div class="chang-pwd"></div>
+					<div class="op-icon add-account"></div>
 					<button class="" @click="changeAccount">填写支付帐号</button>
 				</div>
 				<div class="operate-box">
-			      	<div class="img">
+			      	<div class="op-icon img">
 			      		<img :src="src"/>
 			      	</div>
 			      	<label><input type="file" id="portrait" name="portrait" @change="changePortrait">更换头像</label>
 			    </div> 
 				<div class="operate-box">
-					<div class="chang-pwd"></div>
+					<div class="op-icon chang-pwd"></div>
 					<button class="" @click="changePwd">修改密码</button>
 				</div>
 			</div>
@@ -159,8 +159,12 @@ export default {
 	    	console.log('获取资源失败')
             _this.myFun.tokenExpired(err)
 	    }
-	})
-			            
+	});
+	setTimeout(() => {
+		window.onresize = function() {
+			myChart.resize();
+		}
+	}, 20)   
   },
   methods: {
   	slideInfoBox() {
@@ -224,7 +228,6 @@ export default {
             cache: false,
             success: function(data){
                 if(data.imgSrc) {
-                	console.log('上传成功')
                 	_this.myFun.showMsg('上传头像成功', 1)
                 	_this.src = _this.newSrc;
                 	_this.$store.commit('setUserImg', data.imgSrc);
@@ -234,7 +237,6 @@ export default {
                 
             },
             error: function(error) {
-            	console.log(error)
             	_this.myFun.showMsg("上传头像失败", 0);
             }
         })
@@ -283,17 +285,17 @@ header {
 .op-box {
 	width: 100%;
 	height: 180px;
-	background: #eee;
+	background: rgba(255, 255, 255, 0.9);
 	display: flex;
 	justify-content: center;
 	.operate-box {
-	   width: 140px;
-	   height: 120px;
+	   width: 8.7rem;
+	   height: 7.5rem;
 	   border: 1px solid #ccc;
 	   margin: 15px;
 	   .img {
 	   	width: 100%;
-	   	height: 120px;
+	   	height: 7.5rem;
 	   }
 	   img {
 	     max-width: 100%;
@@ -304,7 +306,7 @@ header {
 	  }
 	  label, button {
 	  	display: block;
-	  	width: 140px;
+	  	width: 8.7rem;
 	  	line-height: 30px;
 		color: #fff;
 		font-weight: normal;
@@ -322,17 +324,23 @@ header {
 	  }
 	}
 }
-	.chang-pwd {
-		height: 120px;
-		background-image: url(../assets/img/change-pwd.png);
-		background-repeat: no-repeat;
-		background-position: center center;
-	}
+.chang-pwd {
+	height: 7.5rem;
+	background-image: url(../assets/img/key.png);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+.add-account {
+	height: 7.5rem;
+	background-image: url(../assets/img/money.png);
+	background-repeat: no-repeat;
+	background-position: center center;	
+}
 .op-content {
-	margin-bottom: 30px;
+	margin-bottom: 2rem;
 	width: 100%;
-	min-height: 300px;
-	padding: 20px 0;
+	min-height: 16rem;
+	padding: 1rem 0;
 	background: #eee;
 	img {
 		width: 250px;
@@ -340,9 +348,20 @@ header {
 	}
 }
 #item-charts {
-	width: 600px;
-	height: 400px;
+	width: 80%;
+	height: 25rem;
 	margin: 0 auto;
 	border: 0;
+}
+@media screen and (max-width: 600px) {
+	.op-box {
+		height: 80px;
+		.operate-box {
+			height: 0;
+		}
+		.op-icon {
+			display: none;
+		}
+	}
 }
 </style>

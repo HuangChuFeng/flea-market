@@ -21,28 +21,26 @@ setInterval(function() {
 }, 24 * 3600 * 1000)
 
 function checkNoPayOrder() {
-	var sql = "select * from orders";
-	conn.query(sql, [], function(err, result) {
+	var sql = "select * from orders where status = ?";
+	conn.query(sql, [0], function(err, result) {
 		if (err) {
 			console.log("错误："+err);
 			res.json('数据库查询失败');
 		}
 		if (result) {
 			for (let i = 0; i < result.length; i++) {
-				if(result[i].status == 0) {
-					if(Date.now() - new Date(result[i].time) > 24 * 3600 * 1000) {
-						console.log('订单'+result[i].id+'已超过一天未付款');
-						var sql = "delete from orders where id = ?";
-						conn.query(sql, [result[i].id], function(err, result) {
-							if (err) {
-								console.log("错误："+err);
-								res.json('数据库删除失败');
-							}
-							if (result) {
-								console.log('删除超时订单成功！')
-							}
-						});
-					}
+				if(Date.now() - result[i].time > 24 * 3600 * 1000) {
+					console.log('订单'+result[i].id+'已超过一天未付款');
+					var sql = "delete from orders where id = ?";
+					conn.query(sql, [result[i].id], function(err, result) {
+						if (err) {
+							console.log("错误："+err);
+							res.json('数据库删除失败');
+						}
+						if (result) {
+							console.log('删除超时订单成功！')
+						}
+					});
 				}
 			}
 		}
@@ -53,29 +51,28 @@ function checkNoPayOrder() {
 
 //发布商品
 router.post('/publish', multipartMiddleware, async (req, res)=> {
-    let params = req.body;
-    var token = params.token;
+	let params = req.body;
+	var token = params.token;
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
 			res.send('Access token has expired', 400)
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
-		    var userUrl = '../static/public/uploads/items/user' + userId;
-		    if (!fs.existsSync(userUrl)) {
-		        fs.mkdirSync(userUrl);
-		    }
-		    console.log('title:'+params.title)
+			var userUrl = '../static/public/uploads/items/user' + userId;
+			if (!fs.existsSync(userUrl)) {
+				fs.mkdirSync(userUrl);
+			}
 			var oldItemUrl = userUrl + '/' + params.oldTitle;
 		    if(params.title != params.oldTitle && fs.existsSync(oldItemUrl)) {   //商品名称改变
-				var newItemUrl = userUrl + '/' + params.title;
-				fs.renameSync(oldItemUrl, newItemUrl); 
+		    	var newItemUrl = userUrl + '/' + params.title;
+		    	fs.renameSync(oldItemUrl, newItemUrl); 
 
 		    } else {
 		    	userUrl += '/' + params.title;
-			    if (!fs.existsSync(userUrl)) {
-			        fs.mkdirSync(userUrl);
-			    }
+		    	if (!fs.existsSync(userUrl)) {
+		    		fs.mkdirSync(userUrl);
+		    	}
 		    }
 		    var imgPath = [];
 		    for(var img in req.files) {
@@ -83,47 +80,45 @@ router.post('/publish', multipartMiddleware, async (req, res)=> {
 			    var size = req.files[img].size;    //获取上传文件大小
 			    // config.myConsole('文件类型'+type)
 			    // config.myConsole('文件大小'+size)
-		        var oldPath = req.files[img].path;
-		        var types = req.files[img].name.split('.');
-		        var newPath = userUrl + '/' + img + Date.now() + "." + String(types[types.length - 1]);
-		        fs.renameSync(oldPath,newPath); 
-		        imgPath.push(newPath);
-		    }
-		    imgPath = imgPath.join('&');
+			    var oldPath = req.files[img].path;
+			    var types = req.files[img].name.split('.');
+			    var newPath = userUrl + '/' + img + Date.now() + "." + String(types[types.length - 1]);
+			    fs.renameSync(oldPath,newPath); 
+			    imgPath.push(newPath);
+			}
+			imgPath = imgPath.join('&');
 		    if(params.itemId) {   //更新商品信息
-		    	console.log('修改：')
-		    	// console.log(params)
 		    	if(params.oldImg) {
 		    		var oldImg = params.oldImg.split(',');
 		    		if(imgPath.length == 0) {  //图片没有改变
-	    				imgPath = oldImg.join('&');
-	    				imgPath = imgPath.replace(new RegExp(params.oldTitle,'g'), params.title)
+		    			imgPath = oldImg.join('&');
+		    			imgPath = imgPath.replace(new RegExp(params.oldTitle,'g'), params.title)
 		    		} else {
 		    			imgPath += ('&'+oldImg.join('&'));
 		    		}
 		    	}
 		    	var sql = "update items set title = ?, type = ?, price = ?, imgPath = ?, description = ?, level = ? where id = ? and sellerId = ?";
-				conn.query(sql, [params.title, params.type, params.price, imgPath, params.description, params.level, params.itemId, userId], function(err, result) {
-					if (err) {
-						console.log("错误："+err);
-						res.json('数据库更新失败');
-					}
-					if (result) {
-						res.json({'msg': '200'});
-					}
-				})
+		    	conn.query(sql, [params.title, params.type, params.price, imgPath, params.description, params.level, params.itemId, userId], function(err, result) {
+		    		if (err) {
+		    			console.log("错误："+err);
+		    			res.json('数据库更新失败');
+		    		}
+		    		if (result) {
+		    			res.json({'msg': '200'});
+		    		}
+		    	})
 		    } else {              //增加商品条目
-			    var sql = "insert into items(title, type, price, imgPath, description, level, sellerId) values (?, ?, ?, ?, ?, ?, ?)";
-				conn.query(sql, [params.title, params.type, params.price, imgPath, params.description, params.level, userId], function(err, result) {
-					if (err) {
-						console.log("错误："+err);
-						res.json('数据库更新失败');
-					}
-					if (result) {
-						console.log(result)
-						res.json({'msg': '200'});
-					}
-				});
+		    	var sql = "insert into items(title, type, price, imgPath, description, level, sellerId) values (?, ?, ?, ?, ?, ?, ?)";
+		    	conn.query(sql, [params.title, params.type, params.price, imgPath, params.description, params.level, userId], function(err, result) {
+		    		if (err) {
+		    			console.log("错误："+err);
+		    			res.json('数据库更新失败');
+		    		}
+		    		if (result) {
+		    			console.log(result)
+		    			res.json({'msg': '200'});
+		    		}
+		    	});
 		    }
 		}
 	}
@@ -202,7 +197,7 @@ router.get('/getItems', (req, res) => {
 				}
 				if (result) {
 					sql = "select title, type, description, items.imgPath, level, price, sellerId, hits, user.userName from\
-							 items, user where items.id = ? and items.sellerId = user.id";
+					items, user where items.id = ? and items.sellerId = user.id";
 					conn.query(sql, [params.itemId], function(err, result) {
 						if (err) {
 							console.log("错误："+err);
@@ -220,7 +215,6 @@ router.get('/getItems', (req, res) => {
 //编辑商品信息
 router.get('/editItem', (req, res) => {
 	var params = req.query, sql;
-	console.log(params)
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
@@ -258,25 +252,24 @@ router.get('/editItem', (req, res) => {
 
 //删除商品时删除存放图片的文件夹
 function deleteFolder(path) {
-    var files = [];
-    if( fs.existsSync(path) ) {
-        files = fs.readdirSync(path);
-        files.forEach(function(file,index){
-            var curPath = path + "/" + file;
+	var files = [];
+	if( fs.existsSync(path) ) {
+		files = fs.readdirSync(path);
+		files.forEach(function(file,index){
+			var curPath = path + "/" + file;
             if(fs.statSync(curPath).isDirectory()) { // recurse
-                deleteFolder(curPath);
+            	deleteFolder(curPath);
             } else { // delete file
-                fs.unlinkSync(curPath);
+            	fs.unlinkSync(curPath);
             }
         });
-        fs.rmdirSync(path);
-    }
+		fs.rmdirSync(path);
+	}
 }
 
 //收藏功能
 router.post('/collect', (req, res) => {
 	var params = req.body;
-	console.log(params);
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
@@ -380,7 +373,6 @@ router.get('/getCollect', (req, res) => {
 //购买
 router.post('/buy', (req, res) => {
 	var params = req.body;
-	console.log(params);
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
@@ -427,7 +419,6 @@ router.post('/buy', (req, res) => {
 //付款
 router.post('/pay', (req, res) => {
 	var params = req.body;
-	console.log(params);
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
@@ -452,7 +443,6 @@ router.post('/pay', (req, res) => {
 //卖家确认到账
 router.post('/intoAccount', (req, res) => {
 	var params = req.body;
-	console.log(params);
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
@@ -476,12 +466,11 @@ router.post('/intoAccount', (req, res) => {
 });
 
 
-
 //获取搜索结果
 router.get('/search', (req, res) => {
 	var params = req.query;
 	var sql = "select id, title, imgPath, level, price, type from items where title like\
-	 '%"+params.key+"%' or description like '%"+params.key+"%'";
+	'%"+params.key+"%' or description like '%"+params.key+"%'";
 	conn.query(sql, [], function(err, result) {
 		if (err) {
 			console.log("错误："+err);

@@ -1,7 +1,7 @@
 <template>
 	<div class="modal fade" id="dealModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog">
-		<!-- 查看交易状态 -->
+			<!-- 查看交易状态 -->
 			<div class="modal-content">
 				<div class="modal-header">
 					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
@@ -51,24 +51,24 @@
 </template>
 
 <script>
-export default {
-	props: ["order"],
-  	data () {
-    	return {
+	export default {
+		props: ["order"],
+		data () {
+			return {
 	    	account: null,   //卖家支付帐号
 	    	sellerName: null,  //卖家姓名
 	    	noAccount: false  //卖家有无支付帐号，有则可选择线上或线下付款，无则之恩那个线下付款
-    	}
+	    }
 	},
 	watch: {
 		'order': {
-            handler:(val,oldVal)=>{
-            	this.order = val;
-				console.log('status:'+this.order.status)
-				console.log('子组件ID：'+this.order.id)
-            },
-            deep:true
-        }
+			handler:(val,oldVal)=>{
+				this.order = val;
+				// console.log('status:'+this.order.status)
+				// console.log('子组件ID：'+this.order.id)
+			},
+			deep:true
+		}
 	},
 	mounted: function() {
 	},
@@ -77,97 +77,97 @@ export default {
 		getAccount() {
 			this.$http.get('/api/user/getAccount', {
 				params: {orderId: this.order.id}
-		    },{}).then((response) => {
-              	console.log(response.body)
-              	this.account = response.body[0].account;
-              	this.sellerName = response.body[0].userName;
-              	if(this.account == null) {
-              		$('#paybtn').text('已线下完成付款')
-              		this.noAccount = true;
-              	}
-		    })
-		    .catch(function(response) {
-		        console.log("异常");
-		    })
+			},{}).then((response) => {
+				this.account = response.body[0].account;
+				this.sellerName = response.body[0].userName;
+				if(this.account == null) {
+					$('#paybtn').text('已线下完成付款')
+					this.noAccount = true;
+				}
+			})
+			.catch(function(response) {
+				console.log("异常");
+			})
 		},
 		//付款
 		pay() {
 			this.$http.post('/api/item/pay', {
 				orderId: this.order.id
-		    },{}).then((response) => {
-              	console.log(response.body)
+			},{}).then((response) => {
 				this.order.status = 1;	
 				this.$emit("status-change",this.order);
 				this.account = null;
-		    })
-		    .catch(function(response) {
-		        console.log("异常");
-		    })
+			})
+			.catch(function(response) {
+				console.log("异常");
+			})
 		},
 		//卖家确认到账
 		intoAccount() {
 			this.$http.post('/api/item/intoAccount', {
 				orderId: this.order.id
-		    },{}).then((response) => {
-              	console.log(response.body)
+			},{}).then((response) => {
 				this.order.status = 2;
 				this.$emit("status-change",this.order);
-		    })
-		    .catch(function(response) {
-		        console.log("异常");
-		    })
+			})
+			.catch(function(response) {
+				console.log("异常");
+			})
 		}
 	}
 }
 </script>
 
 <style lang="less">
-.status-box {
-	.status-icon {
-		display: inline-block;
-		div {
-			width: 6rem;
-			height: 6rem;
+	.status-box {
+		.status-icon {
+			display: inline-block;
+			div {
+				width: 6rem;
+				height: 6rem;
+			}
+			p {
+				font-size: 0.8rem;
+			}
+			.icon {
+				background-size: 100% 100%;
+			}
+			.pay {
+				background-image: url(../assets/img/pay.png)
+			}
+			.waited {
+				background-image: url(../assets/img/waited.png)
+			}
+			.success {
+				background-image: url(../assets/img/success.png)
+			}
+			.not-pay {
+				background-image: url(../assets/img/not-pay.png)
+			}
+			.wait {
+				background-image: url(../assets/img/wait.png)
+			}
+			.no-success {
+				background-image: url(../assets/img/no-success.png)
+			}
 		}
-		p {
-			font-size: 0.8rem;
-		}
-		.pay {
-			background-image: url(../assets/img/pay.png)
-		}
-		.waited {
-			background-image: url(../assets/img/waited.png)
-		}
-		.success {
-			background-image: url(../assets/img/success.png)
-		}
-		.not-pay {
-			background-image: url(../assets/img/not-pay.png)
-		}
-		.wait {
-			background-image: url(../assets/img/wait.png)
-		}
-		.no-success {
-			background-image: url(../assets/img/no-success.png)
+		span {
+			display: inline-block;
+			width: 0.35rem;
+			height: 0.35rem;
+			margin: 0 1px;
+			border-radius: 50%;
+			position: relative;
+			bottom: 4rem;
+			background: #20af89;
 		}
 	}
-	span {
-		display: inline-block;
-		width: 0.35rem;
-		height: 0.35rem;
-		margin: 0 1px;
-		border-radius: 50%;
-		position: relative;
-		bottom: 4rem;
-		background: #20af89;
+	.notice-msg {
+		font-size: 0.7rem;
+		margin-bottom: 30px;
+		color: rgba(240, 27, 45, 0.9);
 	}
-}
-.notice-msg {
-	font-size: 0.7rem;
-	margin-bottom: 30px;
-	color: rgba(240, 27, 45, 0.9);
-}
-.account-info {
-	padding: 10px;
-}
+	.account-info {
+		padding: 10px;
+	}
 </style>

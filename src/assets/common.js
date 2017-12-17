@@ -8,10 +8,10 @@ var myFun = {
 			$('#msg').find('i').addClass('error')
 		}
 		$('#msg').find('span').text(text);
-		$('#msg').fadeIn(2000);
+		$('#msg').fadeIn(500);
 		setTimeout(function(){
-			$('#msg').fadeOut(500);
-		},500)
+			$('#msg').fadeOut(1000);
+		},1000)
 	},
 	setToken: function(xhr) {
 		var token = store.state.Token;

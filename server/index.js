@@ -50,17 +50,17 @@ var users = {};
 
 io.on('connection', function (socket) {
 	var isFirstSend = true; //是否是第一次向当前卖家发送消息, 默认为第一次
-    console.log('---------------------socket连接成功-------------------------');
+	console.log('---------------------socket连接成功-------------------------');
 
-    socket.on('disconnect', function(){
-    	for(key in users) {
-    		if(users[key] == socket) {
-    			console.log(key+'离线了')
-    			delete users[key];
-    			break;
-    		}
-    	}
-    });
+	socket.on('disconnect', function(){
+		for(key in users) {
+			if(users[key] == socket) {
+				console.log(key+'离线了')
+				delete users[key];
+				break;
+			}
+		}
+	});
     //建立聊天关系
     socket.on('comming in', function(data) {
     	if(data.username in users) {
@@ -74,62 +74,62 @@ io.on('connection', function (socket) {
     });
 
     socket.on('private message', function (from,to,msg) {
-	    console.log('系统已接受消息：', from, ' 对 ',to, '说：',msg);
-		/* 发送消息时，如果当前卖家是用户的历史练习人，则不是第一次发送  */
-		var sql = "select id as relationId, userName, contactsName from contacts";
-		var relationId;
-		conn.query(sql, [], function(err, result) {
-			if (err) {
-				console.log("错误："+err);
-			}
-			if (result) {
-				for (var i = 0; i < result.length; i++) {
+    	console.log('系统已接受消息：', from, ' 对 ',to, '说：',msg);
+    	/* 发送消息时，如果当前卖家是用户的历史练习人，则不是第一次发送  */
+    	var sql = "select id as relationId, userName, contactsName from contacts";
+    	var relationId;
+    	conn.query(sql, [], function(err, result) {
+    		if (err) {
+    			console.log("错误："+err);
+    		}
+    		if (result) {
+    			for (var i = 0; i < result.length; i++) {
 					//存在该联系人
 					if((result[i].userName == from && result[i].contactsName == to) ||
 						(result[i].userName == to && result[i].contactsName == from)) {
 							isFirstSend = false;    //不是第一次发送
-							relationId = result[i].relationId;
-							break;
+						relationId = result[i].relationId;
+						break;
 					}
 				}
 				console.log('是否是第一次发送:'+isFirstSend)
 			    if(isFirstSend) {   //如果为第一次发送消息，则把当前买家加入用户联系人列表
 			    	var sql = "insert into contacts(userName, contactsName) values (?, ?)";
-					conn.query(sql, [from, to], function(err, result) {
-						if (err) {
-							console.log("错误："+err);
-						}
-						if (result) {
-							console.log('插入结果：')
-							console.log(result.insertId)
-							relationId = result.insertId;
-							console.log('关系id(第一次发送):'+relationId)
-							insertMessage(from, to, msg, relationId);
-						}
-					});
+			    	conn.query(sql, [from, to], function(err, result) {
+			    		if (err) {
+			    			console.log("错误："+err);
+			    		}
+			    		if (result) {
+			    			console.log('插入结果：')
+			    			console.log(result.insertId)
+			    			relationId = result.insertId;
+			    			console.log('关系id(第一次发送):'+relationId)
+			    			insertMessage(from, to, msg, relationId);
+			    		}
+			    	});
 			    }
-				console.log('关系id(不是第一次发送):'+relationId)
-				if(relationId != undefined){
+			    console.log('关系id(不是第一次发送):'+relationId)
+			    if(relationId != undefined){
 			    	insertMessage(from, to, msg, relationId)
-				}
+			    }
 			}
 		});
-		console.log(to+'是否在线:', to in users)
+    	console.log(to+'是否在线:', to in users)
 		//将消息插入数据库，并发送给客户端
 		function insertMessage(from, to, msg, relationId) {
 		    if(to in users){   //当前联系人在线
 		    	users[to].emit('to'+to, {msg:msg, from: from}, function(sendSuccess){
 		    		if(sendSuccess){
 		    			//写入message数据表
-				    		var sql = "insert into message(fromName, toName, content, type, belong) values (?, ?, ?, ?, ?)";
-							conn.query(sql, [from, to, msg.content, msg.type, relationId], function(err, result) {
-								if (err) {
-									console.log("错误："+err);
-								}
-								if (result) {
-			    					console.log({sendSuccess: '消息发送成功'});
-								}
-							});
+		    			var sql = "insert into message(fromName, toName, content, type, belong) values (?, ?, ?, ?, ?)";
+		    			conn.query(sql, [from, to, msg.content, msg.type, relationId], function(err, result) {
+		    				if (err) {
+		    					console.log("错误："+err);
+		    				}
+		    				if (result) {
+		    					console.log({sendSuccess: '消息发送成功'});
+		    				}
+		    			});
 		    		}
 		    	});
 		    	// users[from].emit('to'+from, {msg:msg});
@@ -137,17 +137,17 @@ io.on('connection', function (socket) {
 		    	console.log('对方不在线')
 		    	console.log(msg)
 		    	var sql = "insert into message(fromName, toName, content, type, status, belong) values (?, ?, ?, ?, ?, ?)";
-				conn.query(sql, [from, to, msg.content, msg.type, 0, relationId], function(err, result) {
-					if (err) {
-						console.log("错误："+err);
-					}
-					if (result) {
+		    	conn.query(sql, [from, to, msg.content, msg.type, 0, relationId], function(err, result) {
+		    		if (err) {
+		    			console.log("错误："+err);
+		    		}
+		    		if (result) {
 		    			console.log({sendFailed: '消息已写入未读列表'});
-					}
-				});
+		    		}
+		    	});
 		    }
 		}
-    });
+	});
 })
 
 /*******************聊天室结束*********************/

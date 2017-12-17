@@ -36,7 +36,7 @@ export default {
     display: -ms-flex;
     display: -webkit-flex;
     flex-wrap: wrap;
-    justify-content: left;
+    justify-content: space-around;
 	.order-item {
 		width: 25rem;
 		height: 5rem;
@@ -84,6 +84,16 @@ export default {
 			.time {
 				font-size: 0.7rem;
 			}
+		}
+	}
+}
+@media screen and (max-width:600px){
+	.order {
+		.order-item {
+			height: 5.5rem;
+		}
+		.img {
+			display: none;
 		}
 	}
 }
