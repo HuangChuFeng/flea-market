@@ -1,5 +1,5 @@
 <template>
-	<div class="">
+	<div>
 		<router-view/>
 	</div>
 </template>
@@ -36,12 +36,16 @@ export default {
     display: -ms-flex;
     display: -webkit-flex;
     flex-wrap: wrap;
-    justify-content: space-around;
+    justify-content: left;
 	.order-item {
 		width: 25rem;
 		height: 5rem;
 		margin: 0 0.8rem 0.8rem 2rem;
 		background: #fff;
+        opacity: 0;
+        transform: translateY(30px);
+        animation: show-el 1s;
+        animation-fill-mode: forwards;
 		.img {
 			height: 100%;
 			width: 6rem;
@@ -89,6 +93,7 @@ export default {
 }
 @media screen and (max-width:600px){
 	.order {
+		justify-content: space-around;
 		.order-item {
 			height: 5.5rem;
 		}

@@ -60,7 +60,7 @@
     var href = this.$route.path;
     $(".nav a[href='#"+href+"']").next().addClass('li-active')
     if(href.indexOf('items') >= 0) {
-      $('.sub-menu').toggle()
+      $('.sub-menu').toggle();
     }
     if(this.$store.state.UserName) {
       this.toChildMsg.username = this.$store.state.UserName;

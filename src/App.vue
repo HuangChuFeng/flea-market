@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <FirstIn v-if="firstIn"></FirstIn>
     <div class="mybody">
       <Navbar></Navbar>
       <div id="msg">
@@ -8,10 +9,11 @@
           <span></span>
         </div>
       </div>
+      <!-- 预览消息图片 -->
       <div id="bigImg" @click="hiddenBigImg"><img src=""></div>
       <div class="back-top icon" id="backtopbtn" @click="backTop"></div>
       <div class="content">
-      <div class="small-menu" @click="showMenu"></div>
+        <div class="small-menu" @click="showMenu"></div>
         <router-view/>
       </div>
     </div>
@@ -20,12 +22,14 @@
 
 <script>
 import Navbar from '@/components/navbar';
+import FirstIn from '@/components/firstIn'
 export default {
   components: { 
-    Navbar
+    Navbar, FirstIn
   },
   data () {
     return {
+      firstIn: global.firstIn
     }
   },
   name: 'app',
@@ -57,13 +61,14 @@ export default {
         }
       }, 30)
     },
+    // 消息图片缩小
     hiddenBigImg() {
       $('#bigImg img').css('animation', 'shrink .5s')
       $('#bigImg').fadeOut();
     },
     showMenu() {
       $('.nav').slideDown();
-    }
+    },
   }
 }
 </script>
@@ -134,35 +139,7 @@ html{font-size: 16px;}
     background-position: center center;
   }
 }
-@media screen and (max-width: 960px) {
-    .nav {
-        display: none;
-        z-index: 4;
-        height: 50%;
-        width: 14rem;
-        padding: 0; 
-        top: 0;
-        i, .portrait {
-          display: none;
-        }
-    }
-    .content {
-      margin-left: 0;
-      padding-left: 3rem;
-      .small-menu {
-        display: block;
-      }
-    }
-}
-@media screen and (max-width:600px){
-  html {
-    font-size: 12px;
-  }
-  .content {
-    padding: 0; 
-    padding-top: 20px;
-  }
-}
+
 #bigImg {
   position: fixed;
   width: 100%;
@@ -174,6 +151,35 @@ html{font-size: 16px;}
   img {
     max-width: 100%;
     max-height: 100%;
+  }
+}
+@media screen and (max-width: 960px) {
+  .nav {
+    display: none;
+    z-index: 4;
+    height: 50%;
+    width: 14rem;
+    padding: 0; 
+    top: 0;
+    i, .portrait {
+      display: none;
+    }
+  }
+  .content {
+    margin-left: 0;
+    padding-left: 3rem;
+    .small-menu {
+      display: block;
+    }
+  }
+}
+@media screen and (max-width:600px){
+  html {
+    font-size: 12px;
+  }
+  .content {
+    padding: 0; 
+    padding-top: 20px;
   }
 }
 @-webkit-keyframes enlarge /* Safari 和 Chrome */

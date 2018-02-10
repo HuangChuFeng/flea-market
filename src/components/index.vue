@@ -20,6 +20,7 @@
 				<input type="text" name='search' v-model="key" @keyup.enter="search">
 			</div>
 			<div class="items-box">
+				<!-- 商品列表 -->
 				<div class="item-list box-shadow" v-for="item in items">
 					<div class="img">
 						<img v-bind:src="item.imgPath" alt="">
@@ -58,7 +59,7 @@
 },
 mounted: function(){
 	this.getItems();
-	window.addEventListener('scroll', this.myScroll) 
+	window.addEventListener('scroll', this.myScroll);
 },
 methods: {
 	getItems() {
@@ -67,6 +68,7 @@ methods: {
 			url: "/api/item/getItems",
 			type: "get",
 			data: { getAll: true },
+			async: false,
 			beforeSend: function(xhr) {
 				_this.myFun.setToken(xhr);
 			},

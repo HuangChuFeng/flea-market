@@ -27,7 +27,7 @@ module.exports = {
       'server': resolve('src/server'),
       'assets': path.resolve(__dirname, '../src/assets'), 
       // 'server': path.resolve(__dirname, '../src/server'), 
-      'jquery': path.resolve(__dirname, '../node_modules/jquery/src/jquery')
+      'jquery': path.resolve(__dirname, '../node_modules/jquery/src/jquery'),
     }
   },
   module: {

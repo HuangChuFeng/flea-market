@@ -121,7 +121,7 @@ router.post('/modifyInfo',  multipartMiddleware, async (req, res)=> {
 				})
 			}
 			if(req.files){   //更换头像
-				var userUrl = '../static/public/uploads/portrait';
+				var userUrl = '../static/static/public/uploads/portrait';
 				if (!fs.existsSync(userUrl)) {
 					fs.mkdirSync(userUrl);
 				}

@@ -282,6 +282,12 @@ header {
 .info-box{
 	display: none;
 }
+@keyframes show-box {
+	to {
+		transform: translateX(0px);
+		opacity: 1;
+	}
+}
 .op-box {
 	width: 100%;
 	height: 180px;
@@ -293,6 +299,10 @@ header {
 	   height: 7.5rem;
 	   border: 1px solid #ccc;
 	   margin: 15px;
+	   transform: translateX(-200px);
+	   opacity: 0;
+	   animation: show-box 1s;
+       animation-fill-mode: forwards;
 	   .img {
 	   	width: 100%;
 	   	height: 7.5rem;

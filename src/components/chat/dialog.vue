@@ -44,7 +44,6 @@
 </template>
 
 <script>
-// import io from 'socket.io-client'
 export default {
 	props: ["toChatMsg"],
 	data () {
@@ -97,7 +96,6 @@ export default {
                 }
             } else {   //否则在正在发消息的联系人上添加有新信息标志
                 _this.$emit("get-new-msg",data.from);
-
             }
         });
     },
@@ -311,6 +309,9 @@ export default {
                     margin: 0.9375rem auto 0;
                     border-radius: 0.4375rem;
                     display: inline-block;
+                    transform: scale(0);
+                    animation: show-msg 1s;
+                    animation-fill-mode: forwards;
                     &:after {
                         content: '';
                         width: 0;
@@ -427,6 +428,11 @@ export default {
          }
      }
  }
+}
+@keyframes show-msg {
+    to {
+        transform: scale(1);
+    }
 }
 @media screen and (max-width:600px){
   .dialog {

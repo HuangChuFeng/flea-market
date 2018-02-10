@@ -195,4 +195,29 @@
 			float: right;
 		}
 	}
+	@media screen and (max-width:600px){
+		.detail {
+			display: block;
+		}
+		.item-left {
+			width: 22rem;
+			margin: 0 auto;
+		}
+		.item-right {
+			color: #eee;
+		// margin-left: 4.375rem;
+		text-align: left;
+		min-width: 12.5rem;
+		h3 {
+			margin-bottom: 1.875rem;
+		}
+		.price {
+			color: red;
+		}
+		.hits {
+			float: right;
+			margin-right: 40px;
+		}
+	}
+}
 </style>

@@ -222,7 +222,7 @@ router.get('/editItem', (req, res) => {
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
-			var itemUrl = '../static/public/uploads/items/user' + userId + '/' + params.itemTitle;
+			var itemUrl = '../static/static/public/uploads/items/user' + userId + '/' + params.itemTitle;
 			if(params.type == 0) {   // 0 表示删除
 				sql = "delete from items where id = ? and sellerId = ?";
 				conn.query(sql, [params.itemId, userId], function(err, result) {

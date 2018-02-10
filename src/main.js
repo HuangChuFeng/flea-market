@@ -1,8 +1,9 @@
-﻿import Vue from 'vue'
+﻿import $ from 'jquery'
+import jquery from 'jquery'
+import Vue from 'vue'
 import App from './App'
 import router from './router'
 import VueResource  from 'vue-resource'
-import $ from 'jquery'
 import Vuex from 'vuex'
 import store from './vuex/store'
 import './assets/css/bootstrap.min.css'  
@@ -11,11 +12,10 @@ import './assets/common.less'
 import {myFun} from './assets/common.js'
 import io from 'socket.io-client'
 
-Vue.prototype.myFun = myFun  //引入外部js文件
-
+Vue.prototype.myFun = myFun;  //引入外部js文件
 let token = store.state.Token;
 var UserName = store.state.UserName;
-
+console.log('打包成功')
 //建立socket连接
 global.socket = io('http://localhost:3000');
 if(token) {
@@ -34,8 +34,14 @@ if(token) {
   });
 }
 Vue.use(VueResource) 
+global.firstIn = false;
 //路由拦截，判断目标路由是否需要权限
 router.beforeEach((to, from, next) => {
+  if(from.path == '\/' && to.path == '\/index') {
+    global.firstIn = true;
+  } else {
+    global.firstIn = false;
+  }
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!token) {
       myFun.showMsg('请登录', 0);

@@ -128,8 +128,16 @@
 			}
 			p {
 				font-size: 0.8rem;
+				transform: translate3d(0, 0.8em, 0);
+				opacity: 0;
+			    animation: show-el 1s 1s;
+			    animation-fill-mode: forwards;
 			}
 			.icon {
+				transform: scale(0.7);
+				opacity: 0;
+			    animation: show-el 1s;
+			    animation-fill-mode: forwards;
 				background-size: 100% 100%;
 			}
 			.pay {

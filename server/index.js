@@ -134,8 +134,8 @@ io.on('connection', function (socket) {
 		    	});
 		    	// users[from].emit('to'+from, {msg:msg});
 		    } else {  //不在线，把消息存为对方的未读消息列表
-		    	console.log('对方不在线')
-		    	console.log(msg)
+		    	console.log('对方不在线');
+		    	console.log(msg);
 		    	var sql = "insert into message(fromName, toName, content, type, status, belong) values (?, ?, ?, ?, ?, ?)";
 		    	conn.query(sql, [from, to, msg.content, msg.type, 0, relationId], function(err, result) {
 		    		if (err) {
