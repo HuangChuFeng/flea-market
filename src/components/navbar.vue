@@ -199,7 +199,6 @@
         }
         .reg_log {
           background-image: url(../assets/img/reg_log.png);
-          margin-right: 10px;
         }
         .down {
           width: 15px;

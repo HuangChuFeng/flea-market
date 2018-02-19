@@ -6,8 +6,8 @@ const chatApi = require('./api/chatApi');
 const bodyParser = require('body-parser');
 const express = require('express');
 const app = express();
-const util = require('util');
 
+const util = require('util');
 // const http = require('http');
 var http = require('http').Server(app);
 var io = require('socket.io')(http);

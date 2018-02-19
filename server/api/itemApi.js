@@ -1,10 +1,8 @@
 var express = require('express');
-
 var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart({uploadDir:'./static/public/uploads/' });
+var multipartMiddleware = multipart({uploadDir:'./static/public/uploads/', maxFieldsSize: 10*1024*1024 });
 
 var router = express.Router();
-
 var config = require('../config');
 const fs = require('fs');
 const path = require('path');

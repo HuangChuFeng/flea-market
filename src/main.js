@@ -16,6 +16,7 @@ Vue.prototype.myFun = myFun;  //引入外部js文件
 let token = store.state.Token;
 var UserName = store.state.UserName;
 //建立socket连接
+// global.socket = io('http://39.107.80.119:3000');
 global.socket = io('http://localhost:3000');
 if(token) {
   global.socket.emit('comming in', {

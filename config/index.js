@@ -12,6 +12,15 @@ module.exports = {
     assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
     assetsPublicPath: './',
+    proxyTable: {
+      '/api': {
+        target: 'http://39.107.80.119:3000/api/',
+        changeOrigin: true,
+        pathRewrite: {
+          '^/api': ''
+        }
+      },
+    },
     productionSourceMap: true,
     // Gzip off by default as many popular static hosts such as
     // Surge or Netlify already gzip all static assets for you.
@@ -33,7 +42,7 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
         '/api': {
-            target: 'http://localhost:3000/api/',
+          target: 'http://localhost:3000/api/',
             changeOrigin: true,
             pathRewrite: {
                 '^/api': ''

@@ -15,9 +15,9 @@
 					<div class="modal-body">
 						<form class="form-horizontal form" v-show='showLoginForm'>
 							<div class="form-group">
-								<label for="inputEmail" class="col-sm-4 control-label">邮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;箱：</label>
+								<label for="logEmail" class="col-sm-4 control-label">邮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;箱：</label>
 								<div><div class="col-sm-5">
-									<input type="email" class="form-control" id="inputEmail"
+									<input type="email" class="form-control" id="logEmail"
 									name="email" v-model.trim='email' @keyup="logInputBlur('email')" @blur="logInputBlur('email')" placeholder="邮箱">
 								</div><span class="notice"><i class="icon check" v-if="logLegal.email"></i>{{logNotice.email}}</span></div>
 							</div>
@@ -78,16 +78,16 @@
 								</div><span class="notice"><i class="icon check" v-if="legal.userName"></i>{{notice.userName}}</span></div>
 							</div>
 							<div class="form-group">
-								<label for="inputEmail" class="col-sm-4 control-label">邮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;箱：</label>
+								<label for="regEmail" class="col-sm-4 control-label">邮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;箱：</label>
 								<div><div class="col-sm-5">
-									<input type="email" class="form-control" id="inputEmail" @blur="inputBlur('email')" @keyup = "inputBlur('email')"
+									<input type="email" class="form-control" id="regEmail" @blur="inputBlur('email')" @keyup = "inputBlur('email')"
 									name="email" v-model.trim='email' placeholder="邮箱">
 								</div><span class="notice"><i class="icon check" v-if="legal.email"></i>{{notice.email}}</span></div>
 							</div>
 							<div class="form-group">
 								<label for="inputPwd" class="col-sm-4 control-label">密&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;码：</label>
 								<div><div class="col-sm-5">
-									<input type="password" class="form-control" id="inputEmail" @blur="inputBlur('pwd')" @keyup="inputBlur('pwd')"
+									<input type="password" class="form-control" @blur="inputBlur('pwd')" @keyup="inputBlur('pwd')"
 									name="pwd" v-model.trim='pwd' placeholder="密码">
 								</div><span class="notice"><i class="icon check" v-if="legal.pwd"></i>{{notice.pwd}}</span></div>
 							</div>
