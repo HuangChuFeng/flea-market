@@ -4,7 +4,7 @@ const app = express();
 const fs = require('fs');
 const path = require('path');
 var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart({uploadDir:'../static/public/uploads/' });
+var multipartMiddleware = multipart({uploadDir:'./static/public/uploads/' });
 
 var router = express.Router();
 
@@ -103,7 +103,7 @@ router.post('/modifyInfo',  multipartMiddleware, async (req, res)=> {
 	var token = params.token;
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired' });
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
@@ -121,7 +121,7 @@ router.post('/modifyInfo',  multipartMiddleware, async (req, res)=> {
 				})
 			}
 			if(req.files){   //更换头像
-				var userUrl = '../static/static/public/uploads/portrait';
+				var userUrl = './static/public/uploads/portrait';
 				if (!fs.existsSync(userUrl)) {
 					fs.mkdirSync(userUrl);
 				}

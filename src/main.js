@@ -15,7 +15,6 @@ import io from 'socket.io-client'
 Vue.prototype.myFun = myFun;  //引入外部js文件
 let token = store.state.Token;
 var UserName = store.state.UserName;
-console.log('打包成功')
 //建立socket连接
 global.socket = io('http://localhost:3000');
 if(token) {

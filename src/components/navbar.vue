@@ -1,6 +1,6 @@
 <template>
   <div>
-   <div class="nav" @click="hiddenMenu">
+   <div class="nav">
     <div class="portrait">
       <div class="img">
         <img :src="toChildMsg.imgSrc" id="nav_portrait" />
@@ -9,10 +9,10 @@
     </div> 
     <ul @click='liActive'>
       <li><i class="icon index"></i><router-link to="/index">首页</router-link><span class="bottom-line"></span></li>
-      <li v-on:click="toggleSubMenu">
-        <i class="icon items-icon"></i><router-link to="">我的宝贝</router-link><i class = "down"></i>
+      <li @click="toggleSubMenu">
+        <i class="icon items-icon" @click=""></i><router-link to="">我的宝贝</router-link><i class = "down"></i>
         <!-- <span class="bottom-line"></span> -->
-        <ul class="sub-menu" @click.stop="">
+        <ul class="sub-menu" @click.stop=''>
           <li><router-link to="/items/published">已发布</router-link></li>
           <li><router-link to="/items/collect">已收藏</router-link></li>
           <li><router-link to="/items/sale">卖出</router-link></li>
@@ -31,15 +31,14 @@
       <router-link to="#" v-if="toChildMsg.isExit" data-toggle="modal" data-target="#regModal" id="reg">&nbsp;&nbsp;注册</router-link>
       <a href="javascript:;" v-else id="Exit" @click='Exit'>退出</a>
       <span class="bottom-line"></span></li>
+      <li class="slideUp-icon" @click="hiddenMenu"><i class="up"></i></li>
     </ul>
-    <div class="triangle"></div>
   </div>
   <Reglog :parent-msg="toChildMsg" @parent-msg-change='parentMsgChange'></Reglog>
 </div>
 </template>
 <script>
   import Reglog from '@/components/reg_log'
-
   export default {
     components: { 
       Reglog
@@ -52,11 +51,11 @@
           imgSrc: ''
         },
         unReadObj: {},
-      unreadCount: null,  //未读消息总数
-      flag: false
+        unreadCount: null,  //未读消息总数
+        flag: false // 默认隐藏子菜单
     }
   },
-  mounted: function () { 
+  mounted: function() { 
     var href = this.$route.path;
     $(".nav a[href='#"+href+"']").next().addClass('li-active')
     if(href.indexOf('items') >= 0) {
@@ -117,7 +116,7 @@
     liActive(e) {
       var e = e.target;
       $(e).next().addClass('li-active');
-      $(e).parent().siblings().children('.bottom-line').removeClass('li-active')
+      $(e).parent().siblings().children('.bottom-line').removeClass('li-active');
     },
     toggleSubMenu() {
       if(!this.flag) {
@@ -179,11 +178,12 @@
         }
         &:last-child {
           a {
-            margin-left: -5px;
+            margin-left: -6px;
           }
         }
         .icon {
-          margin: 0 6px -10px 0;
+          vertical-align: bottom;
+          // margin: 0 6px -10px 0;
         }
         .index {
           background-image: url(../assets/img/index.png);
@@ -199,7 +199,6 @@
         }
         .reg_log {
           background-image: url(../assets/img/reg_log.png);
-          margin-left: 1px;
           margin-right: 10px;
         }
         .down {
@@ -207,7 +206,7 @@
           height: 8px;
           display: inline-block;
           position: relative;
-          bottom: 1px;
+          vertical-align: middle;
           left: 35%;
           background-image: url(../assets/img/down.png);
           background-size: 15px 8px;
@@ -245,6 +244,7 @@
         border-radius: 50%;
         border: 1px solid;
         overflow: hidden;
+        vertical-align: middle;
         img {
           max-width: 100%;
           max-height: 100%;
@@ -257,7 +257,6 @@
         position: relative;
         left: 15px;
         font-size: 0.8rem;
-        bottom: 20px;
       }
     }
   }
@@ -280,6 +279,17 @@
             &:last-child {
               padding-left: 25px;
             }
+          }
+          .slideUp-icon {
+            position: absolute;
+            margin: 10% 0 0 30%;
+              .up {
+                width: 15px;
+                height: 8px;
+                display: inline-block;
+                background-image: url(../assets/img/down.png);
+                background-size: 15px 8px;
+              }
           }
         }
         .sub-menu li{

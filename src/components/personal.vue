@@ -169,10 +169,16 @@ export default {
   methods: {
   	slideInfoBox() {
   		$('.info-box').slideToggle();
+		setTimeout(()=> {
+			this.isChangeImg = false;
+			this.isChangePwd = false;
+			this.isChangeAccount = false;
+		}, 1000)
   	},
   	changePortrait(e) {
   		this.isChangeImg = true;
   		this.isChangePwd = false;
+    	this.isChangeAccount = false;
   		var files = e.target.files || e.dataTransfer.files;
   		this.newImg = files[0];
   		if(typeof FileReader==='undefined'){
@@ -192,6 +198,7 @@ export default {
   	changePwd() {
   		this.isChangePwd = true;
   		this.isChangeImg = false;
+    	this.isChangeAccount = false;
   	},
   	modifyPwd() {
   		if(this.pwd != this.rpwd) {
@@ -243,6 +250,8 @@ export default {
   	},
   	changeAccount () {
   		this.isChangeAccount = true;
+  		this.isChangePwd = false;
+  		this.isChangeImg = false;
   	},
   	insertAccount() {
   		console.log(this.inputAccount)

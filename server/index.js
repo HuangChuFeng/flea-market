@@ -75,7 +75,7 @@ io.on('connection', function (socket) {
 
     socket.on('private message', function (from,to,msg) {
     	console.log('系统已接受消息：', from, ' 对 ',to, '说：',msg);
-    	/* 发送消息时，如果当前卖家是用户的历史练习人，则不是第一次发送  */
+    	/* 发送消息时，如果当前卖家是用户的历史联系人，则不是第一次发送  */
     	var sql = "select id as relationId, userName, contactsName from contacts";
     	var relationId;
     	conn.query(sql, [], function(err, result) {

@@ -14,7 +14,8 @@
 			<div class="item-right">
 				<h3>{{item.title}}</h3>
 				<p class="price">￥ {{item.price}}</p>
-				<p>{{item.level}} 成新<span class="hits">被浏览了&nbsp;&nbsp;{{item.hits}}&nbsp;&nbsp;次</span></p>
+				<p>{{item.level}} 成新<span class="hits">
+					<img src="../assets/img/eye.png" />{{item.hits}}&nbsp;&nbsp;次</span></p>
 				<p>来自 
 					<span v-if="item.sellerId == userId">{{item.userName}}</span>
 					<router-link :to="{path:'/message',query: {sellerId: item.sellerId, sellerName: encodeURI(encodeURI(item.userName))}}" v-else>

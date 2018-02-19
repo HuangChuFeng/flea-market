@@ -33,7 +33,8 @@
 					</div>
 					<div class="btn-box">
 						<p class="notice-msg" v-if="order.status == 0">若超过24小时未付款，订单将自动取消</p>
-						<div  v-if="order.status == 0">
+						<div class="btn-box"  v-if="order.status == 0">
+							<button class="btn btn-cancel" @click="cancelOrder">取消订单</button><span></span>
 							<button class="btn btn-submit"  v-if="noAccount" @click='pay'>已线下完成付款</button>
 							<button class="btn btn-submit"  v-if="account != null" @click='pay'>我已付款</button>
 							<button class="btn btn-cancel" v-if="this.$route.path == '\/items\/buyin' && account == null && !noAccount" @click='getAccount'>去付款</button>
@@ -57,7 +58,7 @@
 			return {
 	    	account: null,   //卖家支付帐号
 	    	sellerName: null,  //卖家姓名
-	    	noAccount: false  //卖家有无支付帐号，有则可选择线上或线下付款，无则之恩那个线下付款
+	    	noAccount: false  //卖家有无支付帐号，有则可选择线上或线下付款，无则默认为线下付款
 	    }
 	},
 	watch: {
@@ -73,7 +74,21 @@
 	mounted: function() {
 	},
 	methods: {
-		//获取卖家支付帐号
+		// 买家取消未付款订单
+		cancelOrder() {
+			this.$http.get('/api/item/cancelOrder', {
+				params: {orderId: this.order.id}
+			},{}).then((response) => {
+				if(response.body.code === 200) {
+					$('.close').click();
+					this.$emit("status-change",this.order);
+				}
+			})
+			.catch(function(response) {
+				console.log("异常");
+			})
+		},
+		// 获取卖家支付帐号
 		getAccount() {
 			this.$http.get('/api/user/getAccount', {
 				params: {orderId: this.order.id}

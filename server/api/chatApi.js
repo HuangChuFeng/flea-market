@@ -22,7 +22,7 @@ router.get('/getContacts', (req, res) => {
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired'});
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
@@ -54,7 +54,7 @@ router.get('/getChatRecord', (req, res) => {
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired'});
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
@@ -80,7 +80,7 @@ router.get('/getUnreadMsg', (req, res) => {
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired'});
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
@@ -106,7 +106,7 @@ router.post('/setRead', (req, res) => {
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired'});
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;

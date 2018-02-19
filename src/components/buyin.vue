@@ -33,8 +33,8 @@
 				orderItem: [],
 				order: {
 					id: null,
-	    		status: null,   //订单状态
-	    	}
+					status: null,   //订单状态
+				}
 	    }
 	},
 	watch: {

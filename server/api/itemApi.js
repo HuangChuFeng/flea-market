@@ -1,7 +1,7 @@
 var express = require('express');
 
 var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart({uploadDir:'../static/public/uploads/' });
+var multipartMiddleware = multipart({uploadDir:'./static/public/uploads/' });
 
 var router = express.Router();
 
@@ -55,11 +55,11 @@ router.post('/publish', multipartMiddleware, async (req, res)=> {
 	var token = params.token;
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired'});
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
-			var userUrl = '../static/public/uploads/items/user' + userId;
+			var userUrl = './static/public/uploads/items/user' + userId;
 			if (!fs.existsSync(userUrl)) {
 				fs.mkdirSync(userUrl);
 			}
@@ -76,10 +76,6 @@ router.post('/publish', multipartMiddleware, async (req, res)=> {
 		    }
 		    var imgPath = [];
 		    for(var img in req.files) {
-			    var type = req.files[img].type;    //获取上传文件格式
-			    var size = req.files[img].size;    //获取上传文件大小
-			    // config.myConsole('文件类型'+type)
-			    // config.myConsole('文件大小'+size)
 			    var oldPath = req.files[img].path;
 			    var types = req.files[img].name.split('.');
 			    var newPath = userUrl + '/' + img + Date.now() + "." + String(types[types.length - 1]);
@@ -139,7 +135,7 @@ router.get('/getItems', (req, res) => {
 				myres['items'] = result;  //result是一个数组
 				if(token) {
 					if(config.checkToken(token).isExpired) {  //token过期
-						res.send('Access token has expired', 400)
+						res.send(400, { tokenError: 'Access token has expired'});
 					} else {
 						token = config.checkToken(token).tokenData;
 						var userId = token.iss;
@@ -170,7 +166,7 @@ router.get('/getItems', (req, res) => {
 	} else {                 //获取某个用户发布的所有商品
 		if(token) {
 			if(config.checkToken(token).isExpired) {  //token过期
-				res.send('Access token has expired', 400)
+				res.send(400, { tokenError: 'Access token has expired'});
 			} else {
 				token = config.checkToken(token).tokenData;
 				var userId = token.iss;
@@ -218,7 +214,7 @@ router.get('/editItem', (req, res) => {
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired'});
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
@@ -273,7 +269,7 @@ router.post('/collect', (req, res) => {
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired'});
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
@@ -325,7 +321,7 @@ router.get('/getCollect', (req, res) => {
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired'});
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
@@ -376,7 +372,7 @@ router.post('/buy', (req, res) => {
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired'});
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
@@ -422,7 +418,7 @@ router.post('/pay', (req, res) => {
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired'});
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
@@ -446,7 +442,7 @@ router.post('/intoAccount', (req, res) => {
 	var token = req.headers['token'];
 	if(token) {
 		if(config.checkToken(token).isExpired) {  //token过期
-			res.send('Access token has expired', 400)
+			res.send(400, { tokenError: 'Access token has expired'});
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
@@ -465,6 +461,21 @@ router.post('/intoAccount', (req, res) => {
 	}
 });
 
+// 买家未付款之前取消订单
+router.get('/cancelOrder', (req, res) => {
+	var params = req.query;
+	var sql = "delete from orders where id = ?";
+	conn.query(sql, [params.orderId], function (err, result) {
+		if (err) {
+			console.log("错误：" + err);
+			res.json('数据库删除失败');
+		}
+		if (result) {
+			res.json({code: 200})
+			console.log('删除未付款订单成功！')
+		}
+	});
+});
 
 //获取搜索结果
 router.get('/search', (req, res) => {

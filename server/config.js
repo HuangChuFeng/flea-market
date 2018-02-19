@@ -49,7 +49,7 @@ var config = {
 	},
 	checkToken: function(token) {
 		try {
-		    var decoded = jwt.decode(token, secret), isExpired = false;  //false未过期
+			var decoded = jwt.decode(token, secret), isExpired = false;  //false未过期
 		    if (decoded.exp <= Date.now()) {              //如果token过期
 		    	isExpired = true;
 			    return {'isExpired': isExpired};  //服务端没有数据返回时可用res.end

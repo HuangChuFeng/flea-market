@@ -20,12 +20,12 @@ var myFun = {
 		}
 	},
 	tokenExpired: function(error) {
-	    if(error.status == 400) {
+		if (error.status == 400 && error.tokenError) {
 		    this.showMsg('token过期');
 		    setTimeout(function(){
 			    store.commit('clearUser')
-	    		router.go(0)
-		    }, 1500)
+	    		router.go(0);
+		    }, 1500);
 		}
 	}
 }

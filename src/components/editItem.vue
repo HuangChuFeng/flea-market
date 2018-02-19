@@ -177,62 +177,62 @@ watch: {
 		publish() {
 			var formdata = new FormData();  		
 			formdata.enctype = "multipart/form-data";
-		if(this.childOpType != 'add'){   //修改
-			console.log('类型：'+this.childOpType)
-			formdata.append('itemId', this.childOpType);
-			formdata.append('oldTitle', this.oldTitle);
-			if(this.oldImg.length != 0 ) { //原来的图片还在
-				formdata.append('oldImg', this.oldImg)
+			if(this.childOpType != 'add'){   //修改
+				console.log('类型：'+this.childOpType)
+				formdata.append('itemId', this.childOpType);
+				formdata.append('oldTitle', this.oldTitle);
+				if(this.oldImg.length != 0 ) { //原来的图片还在
+					formdata.append('oldImg', this.oldImg)
+				}
 			}
+			if(this.imgs.length != 0){
+				for (var i = 0; i < this.imgs.length; i++) {  
+					formdata.append('img'+i, this.imgs[i]);
+				}
+			} else {
+				if(this.oldImg.length == 0){
+					this.myFun.showMsg('请添加图片', 0)
+				}
+			}
+			formdata.append('token', this.$store.state.Token);
+			for (var key in this.item) {  
+				if (key) {
+					formdata.append(key, this.item[key])
+				}
+			}
+			var _this = this;
+			$.ajax({
+				url: "/api/item/publish",
+				type: "post",
+				data: formdata,
+				processData: false, // 不处理数据
+				contentType: false, // 不设置请求头
+				cache: false,
+				beforeSend: function(){
+					var date = new Date();
+					console.log('开始上传图片'+date);
+				},
+				success: function(data){
+					if(data.msg == '200'){
+						var date = new Date();
+						console.log('上传完成'+date);
+						_this.cancelAdd();
+						_this.item.imgPath.length = 0;
+						_this.imgs.length = 0;
+						_this.item.title = '';
+						_this.item.type = '书籍教材';
+						_this.item.price= 0;
+						_this.item.description =  '';
+						_this.item.level= 0;
+					}
+				},
+				error: function(error) {
+					_this.myFun.tokenExpired(error)
+					console.log("发布失败");
+				}
+			})
 		}
-		if(this.imgs.length != 0){
-			for (var i = 0; i < this.imgs.length; i++) {  
-				formdata.append('img'+i, this.imgs[i]);
-			}
-		} else {
-			if(this.oldImg.length == 0){
-				this.myFun.showMsg('请添加图片', 0)
-			}
-		}
-		formdata.append('token', this.$store.state.Token);
-		for (var key in this.item) {  
-			if (key) {
-				formdata.append(key, this.item[key])
-			}
-		}
-		var _this = this;
-		$.ajax({
-			url: "/api/item/publish",
-			type: "post",
-			data: formdata,
-            processData: false, // 不处理数据
-            contentType: false, // 不设置请求头
-            cache: false,
-            beforeSend: function(){
-            	var date = new Date();
-            	console.log('开始上传图片'+date);
-            },
-            success: function(data){
-            	if(data.msg == '200'){
-            		var date = new Date();
-            		console.log('上传完成'+date);
-            		_this.cancelAdd();
-            		_this.item.imgPath.length = 0;
-            		_this.imgs.length = 0;
-            		_this.item.title = '';
-            		_this.item.type = '书籍教材';
-            		_this.item.price= 0;
-            		_this.item.description =  '';
-            		_this.item.level= 0;
-            	}
-            },
-            error: function(error) {
-            	_this.myFun.tokenExpired(error)
-            	console.log("发布失败");
-            }
-        })
 	}
-}
 }
 </script>
 
@@ -282,6 +282,14 @@ watch: {
 			margin-bottom: 5px;
 			background-color: rgba(255, 255, 255, 0.9);
 			text-align: center;
+			transform: scale(0);
+			animation: enlarge-img ease-in .5s;
+			animation-fill-mode: forwards;
+			@keyframes enlarge-img {
+				to {
+					transform: scale(1);
+				}
+			}
 			&:hover {
 				background-color: #fff;
 			}
