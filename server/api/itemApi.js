@@ -12,7 +12,6 @@ var mysql = require('mysql');
 var conn = mysql.createConnection(models.mysql);
 conn.connect();
 
-
 // 每隔一天轮询订单数据表，如果存在订单超过一天未付款，则删除该订单
 setInterval(function() {
 	checkNoPayOrder();

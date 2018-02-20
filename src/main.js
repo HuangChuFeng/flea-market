@@ -37,7 +37,7 @@ Vue.use(VueResource)
 global.firstIn = false;
 //路由拦截，判断目标路由是否需要权限
 router.beforeEach((to, from, next) => {
-  if(from.path == '\/' && to.path == '\/index') {
+  if(from.path == '\/' && to.path == '\/index' && !token) {
     global.firstIn = true;
   } else {
     global.firstIn = false;
