@@ -23,7 +23,7 @@
 				<!-- 商品列表 -->
 				<div class="item-list box-shadow" v-for="item in items">
 					<div class="img">
-						<img v-bind:src="item.imgPath" alt="">
+						<img v-bind:data-src="item.imgPath" src="../assets/img/loading.gif" alt="">
 						<div class="no-img" v-if="item.imgPath == ''">
 							<img src="../assets/img/notice.png">
 							<br/><br/>
@@ -59,6 +59,14 @@
 },
 mounted: function(){
 	this.getItems();
+	var imgBox = document.getElementsByClassName('img');
+	for (let i = 0; i < 7; i++) {
+		setTimeout(() => {
+			var img = imgBox[i].getElementsByTagName('img')[0];
+			var src = img.dataset.src;
+			img.setAttribute("src", src)
+		}, 1000)
+	}
 	window.addEventListener('scroll', this.myScroll);
 },
 methods: {
@@ -128,6 +136,7 @@ methods: {
 },
 myScroll(e) {
 	var top1 = document.documentElement.scrollTop || document.body.scrollTop;
+	// 显示或隐藏回到顶部按钮
 	setTimeout(function() {
 		var top2 = document.documentElement.scrollTop || document.body.scrollTop;
 		if(top2 - top1 > 50) {
@@ -136,7 +145,20 @@ myScroll(e) {
 		if(top2 - top1 < -50) {
 			$('.search').css('display','block')
 		}
-	}, 1000)
+	}, 1000);
+	// 加载图片
+	var imgBox = document.getElementsByClassName('img');
+	var se = document.documentElement.clientHeight //浏览器可见区域高度。
+	for (let i = 0; i < imgBox.length; i++) {
+		setTimeout(() => {
+			var img = imgBox[i].getElementsByTagName('img')[0];
+			var top = img.getBoundingClientRect().top //元素顶端到可见区域顶端的距离
+			if(top <= se){
+				var src = img.dataset.src;
+				img.setAttribute("src", src)
+			}
+		}, 1000)
+	}
 },
 selectType(e) {
 	var e = e || window.event;
