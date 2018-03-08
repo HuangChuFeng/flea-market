@@ -26,8 +26,9 @@ router.get('/getContacts', (req, res) => {
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
-			var sql = "select contacts.userName, contactsName, user.userName as name from contacts, user where user.id = ?";
-			conn.query(sql, [userId], function(err, result) {
+			var sql = "select contacts.userName, contactsName, user.userName as name from contacts, user \
+			where user.id = ? and isDel = ?";
+			conn.query(sql, [userId, 0], function(err, result) {
 				if (err) {
 					console.log("错误："+err);
 				}
@@ -59,7 +60,7 @@ router.get('/getChatRecord', (req, res) => {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
 			//获取用户和当前聊天对象的聊天记录(用户发出的和收到的)
-			var sql = "select fromName, toName, content, createdTime, type, status from message, user, contacts where\
+			var sql = "select message.id, fromName, toName, content, createdTime, type, status, delName from message, user, contacts where\
 			user.id = ? and ((contacts.userName = user.userName and contacts.contactsName = ?)\
 			or (contacts.userName = ? and contacts.contactsName = user.userName)) and\
 			contacts.id = message.belong";
@@ -137,4 +138,71 @@ router.post('/sendMsg', multipartMiddleware, async (req, res)=> {
 	fs.renameSync(oldPath,newPath); 
 	res.json({msgPath: newPath});
 })
+
+// 删除消息
+router.post('/delMsg', (req, res) => {
+	var params = req.body, sql1, sql2;
+	console.log(params)
+	// 如果对方已经删除则删除该记录，否则更新
+	sql1 = `update message set delName = ? where delName is null and id = ?`;
+	sql2 = `delete from message where delName is not null and id = ?`;
+	conn.query(sql2, [params.id], function(err, result) {
+		if (err) {
+			console.log("错误："+err);
+		}
+		if (result) {
+			sqlAsync();
+		}
+	})
+	function sqlAsync() {
+		conn.query(sql1, [params.delName, params.id], function(err, result) {
+			if (err) {
+				console.log("错误："+err);
+			}
+			if (result) {
+				console.log(result)
+				res.json(result);
+			}
+		})
+	}
+});
+
+// 删除联系人，即清空聊天记录，其中删除消息时全为发送方删除
+router.post('/delContact', (req, res) => {
+	var params = req.body, sql1, sql2, sql3;
+	// 删除消息记录
+	sql1 = `update message set delName = ? where delName is null and 
+	((fromName = ? and toName = ?) or (fromName = ? and toName = ?))`;
+	sql2 = `delete from message where delName is not null and ((fromName = ? and toName = ?) or (fromName = ? and toName = ?))`;
+	sql3 = 'update contacts set isDel = ? where ((userName = ? and contactsName = ?) or (userName = ? and contactsName = ?))'
+	conn.query(sql2, [params.userName, params.contactsName, params.contactsName, params.userName], function(err, result) {
+		if (err) {
+			console.log("错误1："+err);
+		}
+		if (result) {
+			sqlAsync1();
+		}
+	});
+	function sqlAsync1() {
+		conn.query(sql1, [params.userName, params.userName, params.contactsName, params.contactsName, params.userName], function(err, result) {
+			if (err) {
+				console.log("错误："+err);
+			}
+			if (result) {
+				sqlAsync2();
+			}
+		})
+	}
+	// 删除联系人关系
+	function sqlAsync2() {
+		conn.query(sql3, [1, params.userName, params.contactsName, params.contactsName, params.userName], function(err, result) {
+			if (err) {
+				console.log("错误："+err);
+			}
+			if (result) {
+				res.json(result);
+			}
+		})
+	}
+});
 module.exports = router;

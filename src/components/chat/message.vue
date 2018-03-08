@@ -10,6 +10,7 @@
 				:class="{'current': currentIndex == index }">{{item.contactsName}}
 				<span :class="{'new-msg': newMsgsender.length != 0 &&newMsgsender.indexOf(item.contactsName) >= 0}"></span>
 				<span v-if = "unRead[item.contactsName]" class='unread-msg'>{{unRead[item.contactsName]}}</span>
+				<i class="icon del" @click="delContact(item.contactsName, index)"></i>
 			</li>
 		</ul>
 	</div>
@@ -87,7 +88,7 @@
 					})
 				} else {   // 当前买家已经是用户的历史联系人，置为选中状态
 					this.toChatMsg.sellerInfo.name = this.seller[sellerArr.indexOf(sellerName)].contactsName;
-					this.selectContacts(this.toChatMsg.sellerInfo.name, sellerArr.indexOf(sellerName))
+					this.selectContacts(this.toChatMsg.sellerInfo.name, sellerArr.indexOf(sellerName));
 				}
 			} else {  //没有路由参数
 		        if(this.seller.length != 0) {   //历史联系人不为空
@@ -122,6 +123,18 @@
     		this.currentIndex = index;
     		this.$refs.update.getChatRecord(contactsName, oldName);
     		this.toChatMsg.sellerInfo.name = contactsName;
+    	},
+    	// 删除联系人，即清空聊天记录
+    	delContact(contactsName, index) {
+			this.$http.post('/api/chat/delContact', {
+                userName: this.userName,
+                contactsName: contactsName
+            },{}).then((response) => {
+                this.seller.splice(index, 1)
+            })
+            .catch(function(response) {
+                console.log("异常");
+            })
     	},
     	getNewMsg(fromName) {
     		console.log('来自子组件：'+fromName+'发来新消息')
@@ -202,6 +215,15 @@
 				padding-left: 40%;
 				&:hover {
 					cursor: pointer;
+					.del {
+						display: inline-block;
+					}
+				}
+				.del {
+					background-size: 70% 80%;
+					float: right;
+					margin: 1em 1em 0 0;
+					display: none;
 				}
 			}
 			.current {

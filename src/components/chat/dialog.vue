@@ -5,49 +5,55 @@
             <i class="icon contacts-icon" @click="showContacts"></i>
         </p>
         <div class="message-box">
-         <div class="msg-line" v-for="msg in msgArr"
-         v-bind:class="isUserMsg(msg.fromName) ? 'user-msg' : 'contacts-msg'">
-         <div v-if="!isUserMsg(msg.fromName)">
-            <span class="name">{{msg.fromName}}</span>
-            <span class="msg-left" v-if="msg.type == 0">{{msg.content}}</span>
-            <span class="msg-left" v-else>
-                <div class="img-record"><img :src="msg.content" @click="preview"/>
+           <div class="msg-line" v-for="(msg, index) in msgArr"
+           v-bind:class="isUserMsg(msg.fromName) ? 'user-msg' : 'contacts-msg'">
+                <!-- 接收者的消息 -->
+               <div v-if="!isUserMsg(msg.fromName)">
+                    <span class="name">{{msg.fromName}}</span>
+                    <span class="msg-left" v-if="msg.type == 0">{{msg.content}}</span>
+                    <span class="msg-left" v-else>
+                        <div class="img-record"><img :src="msg.content" @click="preview"/>
+                        </div>
+                    </span>
+                    <a class="del-msg" @click="delMsg(index, msg.id)">删除</a>
                 </div>
-            </span>
-        </div>
-        <p class="time-notice" v-if="msg.overTime">{{msg.overTime}}</p>
-        <div v-if="isUserMsg(msg.fromName)">
-            <span class="unread" v-if="msg.status == 0">未读</span>
-            <span class="msg-right" v-if="msg.type == 0">{{msg.content}}</span>
-            <span class="msg-right" v-else>
-                <div class="img-record"><img :src="msg.content" @click="preview"/>
+                <p class="time-notice" v-if="msg.overTime">{{msg.overTime}}</p>
+                <!-- 发送者的消息 -->
+                <div v-if="isUserMsg(msg.fromName)">
+                    <a class="del-msg user-del-msg" @click="delMsg(index, msg.id)">删除</a>
+                    <span class="unread" v-if="msg.status == 0">未读</span>
+                    <!-- 消息为文字 -->
+                    <span class="msg-right" v-if="msg.type == 0">{{msg.content}}</span>
+                    <!-- 消息为图片，则可预览大图 -->
+                    <span class="msg-right" v-else>
+                        <div class="img-record"><img :src="msg.content" @click="preview"/>
+                        </div>
+                    </span>
+                    <span class="name">{{msg.fromName}}</span>
                 </div>
-            </span>
-            <span class="name">{{msg.fromName}}</span>
+            </div>
+        </div>
+        <div class="send">
+            <div class="input-message">
+                <textarea class="form-control" v-model="inputMsg" @keyup.enter='send'>
+                </textarea>
+                <div class="viewImg" v-show="tempImg != null"><img :src="viewSrc"></div>
+            </div>
+            <div class="btn-wrap">
+                <label class="select-pic icon"><input type="file" name="imgMsg" @change="viewImg"/></label>
+                <div @click='send' class="send-btn">
+                    <i class="send-icon icon"></i>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-<div class="send">
-    <div class="input-message">
-        <textarea class="form-control" v-model="inputMsg" @keyup.enter='send'>
-        </textarea>
-        <div class="viewImg" v-show="tempImg != null"><img :src="viewSrc"></div>
-    </div>
-    <div class="btn-wrap">
-        <label class="select-pic icon"><input type="file" name="imgMsg" @change="viewImg"/></label>
-        <div @click='send' class="send-btn">
-            <i class="send-icon icon"></i>
-        </div>
-    </div>
-</div>
-</div>
 </template>
 
 <script>
-export default {
-	props: ["toChatMsg"],
-	data () {
-       return {
+    export default {
+       props: ["toChatMsg"],
+       data () {
+         return {
           socket: null,
     		inputMsg: null,    //输入消息
     		userName: this.$store.state.UserName,
@@ -134,6 +140,18 @@ export default {
                 };                 
             }
         },
+        // 删除消息
+        delMsg (index, id) {
+            this.$http.post('/api/chat/delMsg', {
+                id: id,
+                delName: this.userName
+            },{}).then((response) => {
+                this.msgArr.splice(index, 1)
+            })
+            .catch(function(response) {
+                console.log("异常");
+            })
+        },
         send() {
             var from = this.userName,
             to = this.toChatMsg.sellerInfo.name,
@@ -199,13 +217,13 @@ export default {
                     _this.myFun.setToken(xhr);
                 },
                 success: function(data){
-                    _this.msgArr = data;
                     for (var i = 0; i < data.length-1; i++) {
                         //两次发消息时间超过一天
                         if(new Date(data[i+1].createdTime) - new Date(data[i].createdTime) > 2 * 3600 * 1000) {
                             data[i+1]['overTime'] = data[i+1].createdTime.replace(/T/, ' ').split('.')[0];
                         }
                     }
+                    _this.msgArr = data;
                     _this.$nextTick(function(){
                         $('.message-box').scrollTop( $('.message-box')[0].scrollHeight );
                     })
@@ -298,6 +316,28 @@ export default {
                     color: #333;
                     margin-right: 10px;
                 }
+                &:hover {
+                    .del-msg {
+                        display: inline-block;
+                    }
+                }
+                .del-msg {
+                    display: none;
+                    padding-left: 1em;
+                    opacity: 0;
+                    transform: translateX(-1em);
+                    animation: show-del-msg .5s;
+                    animation-fill-mode: forwards;
+                    &:hover {
+                        cursor: pointer;
+                        text-decoration: underline;
+                        color: #1716af;
+                    }
+                }
+                .user-del-msg {
+                    transform: translateX(1em);
+                    padding-right: 1em;
+                }
                 .msg-left, .msg-right {
                     min-height: 2.125rem;
                     color: #fff;
@@ -312,6 +352,9 @@ export default {
                     transform: scale(0);
                     animation: show-msg 1s;
                     animation-fill-mode: forwards;
+                    &:hover {
+                        cursor: pointer;
+                    }
                     &:after {
                         content: '';
                         width: 0;
@@ -320,6 +363,12 @@ export default {
                         top: 6px;
                         border: solid 10px;
                         font-size: 0;
+                    }
+                    @keyframes show-del-msg {
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
                     }
                     .name {
                         display: inline-block;
@@ -345,12 +394,18 @@ export default {
                         right: -16px;
                         border-color: transparent transparent transparent rgba(0, 0, 0, 0.7);
                     }
+                    .del-msg {
+                        transform: translateX(-50px);
+                    }
                 }
                 .msg-left {
                     background: rgba(8, 7, 177, .9);
                     &:after {
                         left: -16px;
                         border-color:  transparent rgba(8, 7, 177, .9) transparent transparent;
+                    }
+                    .del-msg {
+                        transform: translateX(50px);
                     }
                 }
                 span {
@@ -423,11 +478,11 @@ export default {
                 width: 2.5rem;
             }
             .send-icon {
-             position: relative;
-             top: 0.1875rem;
-         }
-     }
- }
+               position: relative;
+               top: 0.1875rem;
+           }
+       }
+   }
 }
 @keyframes show-msg {
     to {

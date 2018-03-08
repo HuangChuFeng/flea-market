@@ -60,7 +60,7 @@
 mounted: function(){
 	this.getItems();
 	var imgBox = document.getElementsByClassName('img');
-	for (let i = 0; i < 7; i++) {
+	for (let i = 0; i < 10; i++) {
 		setTimeout(() => {
 			var img = imgBox[i].getElementsByTagName('img')[0];
 			var src = img.dataset.src;
