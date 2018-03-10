@@ -38,20 +38,21 @@ export default {
     flex-wrap: wrap;
     justify-content: left;
 	.order-item {
-		width: 25rem;
-		height: 5rem;
-		margin: 0 0.8rem 0.8rem 2rem;
+		width: 30rem;
+		height: 10rem;
+		margin: 0 1rem 1rem 3rem;
 		background: #fff;
         opacity: 0;
         transform: translateY(30px);
         animation: show-el 1s;
         animation-fill-mode: forwards;
+		padding: 1rem;
 		.img {
 			height: 100%;
-			width: 6rem;
+			width: 10rem;
 			float: left;
+			vertical-align: middle;
 			img {
-				margin: 0.2rem 0.8rem 0 0.4rem;
 				max-width: 100%;
 				max-height: 90%;
 			}
@@ -59,7 +60,7 @@ export default {
 		.info-box {
 			padding: 0.2rem 0.2rem 0 1rem;
 			float: left;
-			width: 75%;
+			width: 64%;
 			p {
 				margin: 0;
 				text-align: left;
@@ -67,26 +68,31 @@ export default {
 				button {
 					background: rgba(23, 23, 132, 0.9);
 					color: #eee;
+					font-size: .6rem;
+					line-height: 2rem;
 					position: relative;
 					float: right;
-					padding: 1px 0.8rem;
-					border-radius: 0.8rem;
+					padding: 0 1rem;
+					border-radius: 2rem;
 					outline: none;
+				}
+				.del-order-btn {
+					background: #909090;
+					margin-left: 1em;
 				}
 			}
 			.title {
-				margin-top: 0.7rem;
-				margin-bottom: 0.2rem;
-				font-size: 0.9rem;
+				margin: 3rem 0 1rem 0;
+				font-size: 1.1rem;
 			}
 			.price {
 				position: relative;
 				float: right;
-				// right: 1rem;
 				color: red;
 			}
 			.time {
 				font-size: 0.7rem;
+				color: #909090;
 			}
 		}
 	}

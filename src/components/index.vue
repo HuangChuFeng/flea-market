@@ -21,7 +21,7 @@
 			</div>
 			<div class="items-box">
 				<!-- 商品列表 -->
-				<div class="item-list box-shadow" v-for="item in items">
+				<div class="item-list box-shadow" v-for="item in items" @click="toDetail(item.id, collectArr != undefined && collectArr.indexOf(item.id+'') >= 0 ? true : false)">
 					<div class="img">
 						<img v-bind:data-src="item.imgPath" src="../assets/img/loading.gif" alt="">
 						<div class="no-img" v-if="item.imgPath == ''">
@@ -36,7 +36,7 @@
 						</div>
 					</div>
 					<p class="title">
-						<router-link :to="{path:'/index/detail',query: {id: item.id, isCollect: collectArr != undefined && collectArr.indexOf(item.id+'') >= 0 ? true : false}}">{{item.title}}</router-link>
+						<span>{{item.title}}</span>
 						<span>{{item.level}} 成新</span>
 					</p>
 					<p class="price">￥ {{item.price}}</p>
@@ -101,6 +101,13 @@ methods: {
 			}
 		});
 	},
+	toDetail(id, isCollect) {
+		this.$router.push({
+			path:'/index/detail',
+			query: { id: id, isCollect: isCollect }
+		})
+	},
+
 	collect(id) {
 		if(!this.$store.state.Token) {
 			this.myFun.showMsg('您还没有登录', 0)

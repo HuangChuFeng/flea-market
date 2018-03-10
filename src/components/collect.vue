@@ -1,7 +1,7 @@
 <template>
 	<div class="">
    <div class="items-box">
-    <div class="item-list box-shadow" v-for="item in items">
+    <div class="item-list box-shadow" v-for="item in items" @click="toDetail(item.id, true)">
       <div class="img">
        <img v-bind:src="item.imgPath" alt="">
        <div class="no-img" v-if="item.imgPath == ''">
@@ -16,7 +16,7 @@
     </div>
   </div>
   <p class="title">
-    <router-link :to="{path:'/index/detail',query: {id: item.id, isCollect: true}}">{{item.title}}</router-link>
+    <span>{{item.title}}</span>
     <span>{{item.level}} 成新</span></p>
     <p class="price">￥ {{item.price}}</p>
   </div>
@@ -62,6 +62,12 @@
        }
      });
   	},
+    toDetail(id, isCollect) {
+      this.$router.push({
+        path:'/index/detail',
+        query: { id: id, isCollect: isCollect }
+      })
+    },
   	cancelCollect(id) {
       var _this = this, index = '';
       for (var i = 0; i < this.items.length; i++) {

@@ -260,7 +260,7 @@ router.get('/getOrders', (req, res) => {
 			var userId = token.iss;
 			if(params.type == 'in') {  //买入
 				var sql = "select orders.id, user.userName as sellerName, orders.sellerId, title, price, orders.status, items.imgPath, time from items, orders, user where\
-				user.id = orders.sellerId and orders.itemId = items.id and buyerId = ?";
+				user.id = orders.sellerId and orders.itemId = items.id and buyerId = ? and whoDel is null";
 				conn.query(sql, [userId], function(err, result) {
 					if (err) {
 						console.log("错误："+err);
@@ -272,7 +272,7 @@ router.get('/getOrders', (req, res) => {
 			}
 			if(params.type == 'out') {  //卖出
 				var sql = "select orders.id, user.userName as buyerName, orders.buyerId, title, price, orders.status, items.imgPath, time from items, orders, user where\
-				user.id = orders.buyerId and orders.itemId = items.id and orders.sellerId = ?";
+				user.id = orders.buyerId and orders.itemId = items.id and orders.sellerId = ? and whoDel is null";
 				conn.query(sql, [userId], function(err, result) {
 					if (err) {
 						console.log("错误："+err);
@@ -283,6 +283,32 @@ router.get('/getOrders', (req, res) => {
 				})
 			}
 			
+		}
+	}
+});
+
+// 删除订单（仅限交易成功的订单）
+router.post('/delOrder', (req, res) => {
+	var token = req.headers['token'], params = req.body;
+	console.log(params)
+	if(token) {
+		if(config.checkToken(token).isExpired) {  //token过期
+			res.send('Access token has expired', 400)
+		} else {
+			token = config.checkToken(token).tokenData;
+			var userId = token.iss;
+			// 0 表示买家删除， 1表示卖家删除
+			var whoDel = (params.isSaled ? 1 : 0);
+			console.log('whoDel:' + whoDel)
+			var sql = "update orders set whoDel = ? where id = ?";
+			conn.query(sql, [whoDel, params.id], function(err, result) {
+				if (err) {
+					console.log("错误："+err);
+				}
+				if (result) {
+					res.json({msg: 200})
+				}
+			})
 		}
 	}
 });

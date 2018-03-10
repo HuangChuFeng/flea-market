@@ -4,7 +4,7 @@
    
    <div class="items">
      <div class="items-box">
-      <div class="item-list box-shadow" v-for="item in items">
+      <div class="item-list box-shadow" v-for="item in items" @click="toDetail(item.id, false, item.status)">
         <div class="img">
          <img v-bind:src="item.imgPath" alt="">
          <div class="no-img" v-if="item.imgPath == ''">
@@ -23,7 +23,7 @@
       </div>
     </div>
     <p class="title">
-      <router-link :to="{path:'/index/detail',query: {id: item.id, isCollect: false}}" v-if="item.status == 1">{{item.title}}</router-link><i v-else>{{item.title}}</i>
+      <span>{{item.title}}</span>
       <span>{{item.level}} 成新</span></p>
       <p class="price">￥ {{item.price}}</p>
     </div>
@@ -82,6 +82,14 @@
        _this.myFun.tokenExpired(error)
      }
    });
+    }
+  },
+  toDetail(id, isCollect, status) {
+    if(status == 1) {
+      this.$router.push({
+        path:'/index/detail',
+        query: { id: id, isCollect: isCollect }
+      })
     }
   },
   addItem() {

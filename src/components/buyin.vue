@@ -1,11 +1,12 @@
 <template>
 	<div class="order">
-		<div class="order-item" v-for="item in orderItem">
+		<div class="order-item" v-for="(item, index) in orderItem">
 			<div class="img">
 				<img :src="item.imgPath">
 			</div>
 			<div class="info-box">
 				<p>{{item.sellerName}}&nbsp;&gt;
+					<button v-if="item.status == 2" class="del-order-btn" @click="delOrder(item.id, index)">删除订单</button>
 					<button data-toggle="modal" data-target="#dealModal" @click="statusView(item.status, item.id)">
 						<span v-if="item.status == 0">未付款</span>
 						<span v-if="item.status == 1">等待确认</span>
@@ -45,7 +46,7 @@
 			deep:true
 		}
 	},
-	mounted: function() {
+	created: function() {
 		this.getOrders();
 	},
 	methods: {
@@ -83,7 +84,20 @@
 			console.log('来自子组件：'+val)
 			this.order = val;
 			this.getOrders();
-
+		},
+		// 删除订单（仅限交易成功的订单）
+		delOrder(id, index) {
+			this.$http.post('/api/user/delOrder', {
+				id: id,
+				isSaled: false
+			},{}).then((response) => {
+				if(response.body.msg == 200) {
+					this.orderItem.splice(index, 1);
+				}
+			})
+			.catch(function(response) {
+				console.log("异常");
+			})
 		}
 	}
 }

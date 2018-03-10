@@ -166,6 +166,9 @@ form label {
     display: -webkit-flex;
     flex-wrap: wrap;
     justify-content: space-around;
+    &:hover {
+      cursor: pointer;
+    }
     .item-list {
         width: 15rem;
         height: 20rem;
@@ -230,8 +233,12 @@ form label {
         }
         .title {
           margin-top: 1rem;
+          overflow: hidden;
           span {
             float: right;
+            &:first-child {
+              float: left;
+            }
           }
         }
         .price {
