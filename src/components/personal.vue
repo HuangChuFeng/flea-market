@@ -75,7 +75,8 @@
 				  </form>
 			</div>
 		</div>
-		<div id="item-charts"></div>
+		<div id="count-charts"></div>
+		<div id="money-charts"></div>
 	</div>
 	
 </template>
@@ -93,24 +94,26 @@ export default {
     	inputAccount: null,
     	pwd: '',
     	rpwd: '',
-    	option: {
+    	// echarts图表配置
+    	countOption: {
     		title : {
 		        text: '各类商品占比',
 		        x:'center',
 		        textStyle: {
                     fontWeight: 'normal',              //标题颜色
-                    color: '#eee'
-                },
+                    color: '#000'
+                }
 		    },
 		    tooltip : {
 		        trigger: 'item',
 		        formatter: "{a} <br/>{b} : {c} ({d}%)"
 		    },
+		    backgroundColor: 'rgba(255, 255, 255, .3)',
 		    legend: {
 		        orient: 'vertical',
 		        left: 'left',
 		        textStyle: {
-                    color: '#eee'
+                    color: '#000'
                 },
 		        data: ['发布商品','收藏商品','买入商品','售出商品']
 		    },
@@ -118,8 +121,8 @@ export default {
 		        {
 		            name: '各类商品占比',
 		            type: 'pie',
-		            radius : '55%',
-		            center: ['50%', '60%'],
+		            radius : '70%',
+		            center: ['50%', '55%'],
 		            data:[
 		                {value:0, name:'发布商品'},
 		                {value:0, name:'收藏商品'},
@@ -135,11 +138,53 @@ export default {
 		            }
 		        }
 		    ]
+    	},
+    	moneyOption: {
+    		title : {
+		        text: '收支情况',
+		        x:'center',
+		        textStyle: {
+                    fontWeight: 'normal',              //标题颜色
+                    color: '#000'
+                },
+		    },
+		    color:['#333366','#CC0033'],  
+		    backgroundColor: 'rgba(255, 255, 255, .3)',
+		    tooltip : {
+		        trigger: 'item',
+		        formatter: "{a} <br/>{b} : ￥{c} ({d}%)"
+		    },
+		    legend: {
+		        orient: 'vertical',
+		        left: 'left',
+		        textStyle: {
+                    color: '#000'
+                },
+		        data: ['收入','支出']
+		    },
+    		calculable : true,
+		    series : [
+		        {
+		            name: '收支情况',
+		            type: 'pie',
+		            radius : ['50%', '70%'],
+		            center: ['50%', '55%'],
+		            data:[],
+		            itemStyle: {
+		                emphasis: {
+		                    shadowBlur: 10,
+		                    shadowOffsetX: 0,
+		                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+		                }
+		            }
+		        }
+		    ]
     	}
     }
   },
   mounted: function() {
-  	var myChart = echarts.init(document.getElementById('item-charts'));
+  	var myChart1 = echarts.init(document.getElementById('count-charts'));
+  	var myChart2 = echarts.init(document.getElementById('money-charts'));
   	var _this = this;
   	$.ajax({
 	    url: "/api/user/echartsInit",
@@ -148,12 +193,18 @@ export default {
           _this.myFun.setToken(xhr);
         },
 	    success: function(data){
-	    	var option = _this.option.series[0].data;
-	    	for (var i = 0; i < option.length; i++) {
-	    		option[i].value = data[i];
+	    	console.log(data)
+	    	var countOption = _this.countOption.series[0].data;
+	    	for (var i = 0; i < countOption.length; i++) {
+	    		countOption[i].value = data.countOption[i];
 	    	}
-  			myChart.setOption(_this.option);
-  			window.onresize = myChart.resize();
+	    	_this.moneyOption.series[0].data = data.moneyOption;
+  			myChart1.setOption(_this.countOption);
+  			myChart2.setOption(_this.moneyOption);
+  			window.onresize = function() {
+  				myChart1.resize();
+  				myChart2.resize();
+  			}
 	    },
 	    error: function(err) {
 	    	console.log('获取资源失败')
@@ -298,8 +349,10 @@ header {
 	}
 }
 .op-box {
-	width: 100%;
+	width: 96%;
 	height: 180px;
+	margin: 0 auto;
+	margin-bottom: 1em;
 	background: rgba(255, 255, 255, 0.9);
 	display: flex;
 	justify-content: center;
@@ -366,21 +419,28 @@ header {
 		max-height: 100%;
 	}
 }
-#item-charts {
-	width: 80%;
+#count-charts, #money-charts {
+	display: inline-block;
+	width: 48%;
 	height: 25rem;
 	margin: 0 auto;
-	border: 0;
+	border-radius: 10px;
+	padding: 10px;
 }
 @media screen and (max-width: 600px) {
 	.op-box {
 		height: 80px;
+		width: 100%;
 		.operate-box {
 			height: 0;
 		}
 		.op-icon {
 			display: none;
 		}
+	}
+	#count-charts, #money-charts {
+		width: 100%;
+		margin-bottom: 1rem;
 	}
 }
 </style>

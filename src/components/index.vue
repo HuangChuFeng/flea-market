@@ -23,7 +23,7 @@
 				<!-- 商品列表 -->
 				<div class="item-list box-shadow" v-for="item in items" @click="toDetail(item.id, collectArr != undefined && collectArr.indexOf(item.id+'') >= 0 ? true : false)">
 					<div class="img">
-						<img v-bind:data-src="item.imgPath" src="../assets/img/loading.gif" alt="">
+						<img v-bind:data-src="item.imgPath" src="../assets/img/loading.png" alt="">
 						<div class="no-img" v-if="item.imgPath == ''">
 							<img src="../assets/img/notice.png">
 							<br/><br/>

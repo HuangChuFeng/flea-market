@@ -148,7 +148,62 @@ router.post('/modifyInfo',  multipartMiddleware, async (req, res)=> {
 	}
 });
 
-//echarts图表初始化
+// 查询收藏商品的发布商品个数
+function sqlAsync1(userId) {
+	var p = new Promise(function(resolve, reject) {
+		var sql = "select collect, COUNT(items.id) AS publishedCount from user, items where user.id = ? and items.sellerId = user.id";
+		conn.query(sql, [userId], function(err, result) {
+			resolve(result);
+		})
+	});
+	return p;
+}
+
+// 查询买入的商品个数
+function sqlAsync2(result, userId) {
+	var p = new Promise(function(resolve, reject) {
+		
+		var sql = "select COUNT(orders.id) as buyCount from orders where buyerId = ?";
+		conn.query(sql, [userId], function(err, result) {
+			resolve(result);
+		});
+	});
+	return p;
+}
+
+// 查询卖出的商品个数
+function sqlAsync3(result, userId) {
+	var p = new Promise(function(resolve, reject) {
+		var sql = "select COUNT(items.id) AS saleCount from items where items.sellerId = ? and items.status = ?";
+		conn.query(sql, [userId, 0], function(err, result) {
+			resolve(result)
+		})
+	});
+	return p;
+}
+
+// 查询收入（卖出金额）
+function selectIncome(userId) {
+	var p = new Promise(function(resolve, reject) {
+		var sql = "select sum(price) as income from items, orders where orders.sellerId = ? and orders.status = 2 and items.id = orders.itemId";
+		conn.query(sql, [userId], function(err, result) {
+			resolve(result);
+		});
+	});
+	return p;
+}
+// 查询支出（买入商品所花金额）
+function selectOutcome(userId) {
+	var p = new Promise(function(resolve, reject) {
+		var sql = "select sum(price) as outcome from items, orders where orders.buyerId = ? and orders.status = 2 and items.id = orders.itemId";
+		conn.query(sql, [userId], function(err, result) {
+			resolve(result);
+		});
+	});
+	return p;
+}
+
+// 用户个人中心查询各类商品占比情况
 router.get('/echartsInit', (req, res) => {
 	var token = req.headers['token'];
 	if(token) {
@@ -157,43 +212,38 @@ router.get('/echartsInit', (req, res) => {
 		} else {
 			token = config.checkToken(token).tokenData;
 			var userId = token.iss;
-			var sql = "select collect, COUNT(items.id) AS publishedCount from user, items where user.id = ? and items.sellerId = user.id";
-			conn.query(sql, [userId], function(err, result) {
-				if (err) {
-					console.log("错误："+err);
+			var	countOption = [],  // 商品个数配置项
+				moneyOption = [];  // 收支情况配置项
+			// promise解决回调地狱
+			sqlAsync1(userId)
+			.then(function(result){
+			    var collectCount = result[0].collect,
+				publishedCount = result[0].publishedCount;
+				if(collectCount != null) {
+					collectCount = collectCount.split('&').length;
+				} else {
+					collectCount = 0;
 				}
-				if (result) {
-					var collectCount = result[0].collect,
-					publishedCount = result[0].publishedCount;
-					option = [];
-					if(collectCount != null) {
-						collectCount = collectCount.split('&').length;
-					} else {
-						collectCount = 0;
-					}
-					option.push(publishedCount, collectCount);
-					var sql = "select COUNT(orders.id) as buyCount from orders where buyerId = ?";
-					conn.query(sql, [userId], function(err, result) {
-						if (err) {
-							console.log("错误："+err);
-						}
-						if (result) {
-							buyCount = result[0].buyCount
-							option.push(buyCount);
-							var sql = "select COUNT(items.id) AS saleCount from items where items.sellerId = ? and items.status = ?";
-							conn.query(sql, [userId, 0], function(err, result) {
-								if (err) {
-									console.log("错误："+err);
-								}
-								if (result) {
-									var saleCount = result[0].saleCount;
-									option.push(saleCount);
-									res.json(option);
-								}
-							})
-						}
-					})
-				}
+				countOption.push(publishedCount, collectCount);
+			    return sqlAsync2(result, userId);
+			})
+			.then(function(result){
+				var buyCount = result[0].buyCount;
+				countOption.push(buyCount);
+			    return sqlAsync3(result, userId);
+			})
+			.then(function(result){
+			    var saleCount = result[0].saleCount;
+				countOption.push(saleCount);
+				return selectIncome(userId);
+			})
+			.then(function(result) {
+				moneyOption.push({ name: '收入', value: result[0].income });
+				return selectOutcome(userId);
+			})
+			.then(function(result) {
+				moneyOption.push({ name: '支出', value: result[0].outcome });
+				res.json({countOption: countOption, moneyOption: moneyOption});
 			})
 		}
 	}
@@ -219,7 +269,7 @@ var transporter = nodemailer.createTransport(Emailconfig);
 router.post('/sendEamil', (req, res) => {
 	var params = req.body, resetPwd;
 	resetPwd = Math.random().toString(36).substr(2);
-	var options = {
+	var countOptions = {
 		from: '1378894282@qq.com',
 		to: params.email,
 		subject: '重置密码',
@@ -227,7 +277,7 @@ router.post('/sendEamil', (req, res) => {
 		html: '<p>'+params.email+'您好, 系统已为你修改了账户密码如下:<h1>'
 		+resetPwd+'</h1><p>请尽快登录并修改密码</p>',
 	}; 
-	transporter.sendMail(options, function(err, msg){
+	transporter.sendMail(countOptions, function(err, msg){
 		if(err){
 			console.log(err);
 		}
